@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using GalaSoft.MvvmLight.Threading;
 using GMDCGiphyPlugin.ViewModel;
 using GroupMeClientApi.Models;
 using GroupMeClientPlugin;
@@ -23,30 +20,18 @@ namespace GMDCGiphyPlugin
 
         public Task Activated(IMessageContainer groupOrChat, CacheSession cacheSession, IPluginUIIntegration integration, Action<CacheSession> cleanup)
         {
-            Thread thread = new Thread(() =>
+            MainWindow mainWindow = new MainWindow(); // application entry point
+            MainWindowViewModel vm = new MainWindowViewModel();
+            mainWindow.DataContext = vm;
+
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                DispatcherHelper.Initialize();
-                MainWindow mainWindow = new MainWindow();
-                MainWindowViewModel vm = new MainWindowViewModel();
-                mainWindow.DataContext = vm;
-
                 mainWindow.Show();
-
-                mainWindow.Closing += (s, e) =>
-                {
-                    mainWindow.Dispatcher.InvokeShutdown();
-                    cleanup(cacheSession);
-                };
-
-                System.Windows.Threading.Dispatcher.Run();
             });
 
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-
-            Application.Current.MainWindow.Closing += (s, e) =>
+            mainWindow.Closing += (s, e) =>
             {
-                thread.Abort();
+                cleanup(cacheSession);
             };
 
             return Task.CompletedTask;
