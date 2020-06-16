@@ -184,3 +184,11 @@ packages/XamlAnimatedGif.1.2.2/.signature.p7s
 packages/XamlAnimatedGif.1.2.2/XamlAnimatedGif.1.2.2.nupkg
 Publish/GMDCGiphyPlugin-1.0.0.zip
 Publish/RELEASES.txt
+bin/Debug/GalaSoft.MvvmLight.Extras.xml
+bin/Debug/GalaSoft.MvvmLight.Platform.xml
+bin/Debug/GalaSoft.MvvmLight.xml
+bin/Debug/GMDCGiphyPlugin.dll.config
+bin/Debug/Newtonsoft.Json.xml
+bin/Debug/RestSharp.xml
+obj/Debug/.NETFramework,Version=v4.7.2.AssemblyAttributes.cs
+obj/Debug/GMDCGiphyPlugin_MarkupCompile.i.lref

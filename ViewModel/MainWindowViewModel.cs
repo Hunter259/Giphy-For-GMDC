@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Threading;
 using GroupMeClientApi.Models;
 using GroupMeClientPlugin;
 using System;
@@ -18,13 +19,7 @@ namespace GMDCGiphyPlugin.ViewModel
 {
     public class MainWindowViewModel : GalaSoft.MvvmLight.ViewModelBase
     {
-        private int indexPageNumberData;
-
         private string currentSearchQuery;
-
-        private string currentGIFAddress;
-
-        private string currentGIFID;
 
         private ObservableCollection<GIFData> gifIndexImages;
 
@@ -44,31 +39,28 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private ICommand copyGIFLinkCommand;
 
-        private ICommand gifMouseOverCommand;
+        private ICommand searchCompletionCommand;
+
+        private string searchQuery;
 
         public MainWindowViewModel()
         {
-            indexPageNumberData = 1;
             fetchController = new GIFFetchController();
             trendingGIFIndexImages = new ObservableCollection<GIFData>();
             searchGIFIndexImages = new ObservableCollection<GIFData>();
             currentState = GIFType.Trending;
             LoadButtonCommand = new RelayCommand(this.fetchGIFs);
             CopyGIFLinkCommand = new RelayCommand<string>(this.onGIFButtonClick);
-            GIFMouseOverCommand = new RelayCommand<object>(this.onGIFMouseOver);
-            SearchButtonCommand = new RelayCommand(this.onSearchButtonClick);
+            SearchCommand = new RelayCommand<string>(this.onSearchCall);
             TrendingButtonCommand = new RelayCommand(this.onTrendingButtonClick);
-            Task.Run(() =>
+            DispatcherHelper.UIDispatcher.InvokeAsync(async () =>
             {
-                var results = fetchController.FetchNextTrendingPage();
-                Application.Current.Dispatcher.InvokeAsync(() =>
+                ObservableCollection<GIFData> results = await fetchController.FetchNextTrendingPage();
+                foreach (GIFData ms in results)
                 {
-                    foreach (GIFData ms in results.Result)
-                    {
-                        trendingGIFIndexImages.Add(ms);
-                    }
-                    GIFIndexImages = trendingGIFIndexImages;
-                });
+                    trendingGIFIndexImages.Add(ms);
+                }
+                GIFIndexImages = trendingGIFIndexImages;
             });
         }
 
@@ -78,7 +70,7 @@ namespace GMDCGiphyPlugin.ViewModel
             this.CacheSession = cacheSession;
         }
 
-        public ICommand SearchButtonCommand
+        public ICommand SearchCommand
         {
             get => this.searchButtonCommand;
             private set => this.searchButtonCommand = value;
@@ -102,34 +94,22 @@ namespace GMDCGiphyPlugin.ViewModel
             private set => this.copyGIFLinkCommand = value;
         }
 
-        public ICommand GIFMouseOverCommand
+        public ICommand SearchCompletionCommand
         {
-            get => this.gifMouseOverCommand;
-            private set => this.gifMouseOverCommand = value;
+            get => this.searchCompletionCommand;
+            private set => this.searchCompletionCommand = value;
         }
 
-        public int IndexPageNumberData
+        public string SearchQuery
         {
-            get => this.indexPageNumberData;
-            private set => this.Set(() => this.IndexPageNumberData, ref this.indexPageNumberData, value);
+            get => searchQuery;
+            set => this.Set(() => this.SearchQuery, ref this.searchQuery, value);
         }
 
         public ObservableCollection<GIFData> GIFIndexImages
         {
             get => this.gifIndexImages;
             private set => this.Set(() => this.GIFIndexImages, ref this.gifIndexImages, value);
-        }
-
-        public string CurrentGIFAddress
-        {
-            get => this.currentGIFAddress;
-            private set => this.Set(() => this.CurrentGIFAddress, ref this.currentGIFAddress, value);
-        }
-
-        public string CurrentGIFID
-        {
-            get => this.currentGIFID;
-            private set => this.Set(() => this.CurrentGIFID, ref this.currentGIFID, value);
         }
 
         public void onTrendingButtonClick()
@@ -145,64 +125,40 @@ namespace GMDCGiphyPlugin.ViewModel
             }
         }
 
-        public void onSearchButtonClick()
+        public void onSearchCall(string val)
         {
-            SearchView search = new SearchView();
-            SearchViewModel vm = new SearchViewModel();
-            search.DataContext = vm;
-            search.ShowDialog();
-
-            currentSearchQuery = vm.SearchQuery;
-            if (currentSearchQuery != null)
-            {
-                currentState = GIFType.Search;
-                searchGIFIndexImages.Clear();
-                fetchGIFs();
-            }
+            currentSearchQuery = val;
+            searchGIFIndexImages.Clear();
+            currentState = GIFType.Search;
+            fetchGIFs();
         }
 
         public void fetchGIFs()
         {
             if (currentState == GIFType.Trending)
             {
-                Task.Run(() =>
+                DispatcherHelper.UIDispatcher.InvokeAsync(async () =>
                 {
-                    var results = fetchController.FetchNextTrendingPage();
-                    Application.Current.Dispatcher.InvokeAsync(() =>
+                    var results = await fetchController.FetchNextTrendingPage();
+                    foreach (GIFData ms in results)
                     {
-                        foreach (GIFData ms in results.Result)
-                        {
-                            trendingGIFIndexImages.Add(ms);
-                        }
-                        GIFIndexImages = trendingGIFIndexImages;
-                    });
+                        trendingGIFIndexImages.Add(ms);
+                    }
+                    GIFIndexImages = trendingGIFIndexImages;
                 });
             }
             else if (currentState == GIFType.Search)
             {
-                Task.Run(() =>
+                DispatcherHelper.UIDispatcher.InvokeAsync(async () =>
                 {
-                    var results = fetchController.FetchNextSearchPage(currentSearchQuery);
-                    Application.Current.Dispatcher.InvokeAsync(() =>
+                    var results = await fetchController.FetchNextSearchPage(currentSearchQuery);
+                    foreach (GIFData ms in results)
                     {
-                        foreach (GIFData ms in results.Result)
-                        {
-                            searchGIFIndexImages.Add(ms);
-                        }
-                        GIFIndexImages = searchGIFIndexImages;
-                    });
+                        searchGIFIndexImages.Add(ms);
+                    }
+                    GIFIndexImages = searchGIFIndexImages;
                 });
             }
-        }
-
-        public void onGIFMouseOver(object dataParams)
-        {
-            var values = (object[])dataParams;
-            string name = (string)values[0];
-            string url = (string)values[1];
-
-            CurrentGIFID = name;
-            CurrentGIFAddress = url;
         }
 
         public void onGIFButtonClick(string url)
