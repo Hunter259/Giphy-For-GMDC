@@ -35,6 +35,7 @@ namespace GMDCGiphyPlugin
                 mainWindow.Closing += (s, e) =>
                 {
                     mainWindow.Dispatcher.InvokeShutdown();
+                    vm.Cleanup();
                     cleanup(cacheSession);
                 };
 
