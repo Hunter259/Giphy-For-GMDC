@@ -27,7 +27,7 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private ObservableCollection<GIFData> searchGIFIndexImages;
 
-        private GIFFetchController fetchController;
+        private readonly GIFFetchController fetchController;
 
         private GIFType currentState;
 
@@ -49,19 +49,14 @@ namespace GMDCGiphyPlugin.ViewModel
             trendingGIFIndexImages = new ObservableCollection<GIFData>();
             searchGIFIndexImages = new ObservableCollection<GIFData>();
             currentState = GIFType.Trending;
+
             LoadButtonCommand = new RelayCommand(this.fetchGIFs);
             CopyGIFLinkCommand = new RelayCommand<string>(this.onGIFButtonClick);
             SearchCommand = new RelayCommand<string>(this.onSearchCall);
             TrendingButtonCommand = new RelayCommand(this.onTrendingButtonClick);
-            DispatcherHelper.UIDispatcher.InvokeAsync(async () =>
-            {
-                ObservableCollection<GIFData> results = await fetchController.FetchNextTrendingPage();
-                foreach (GIFData ms in results)
-                {
-                    trendingGIFIndexImages.Add(ms);
-                }
-                GIFIndexImages = trendingGIFIndexImages;
-            });
+
+            GIFIndexImages = trendingGIFIndexImages;
+            this.fetchGIFs();
         }
 
         public MainWindowViewModel(IMessageContainer messageContainer, CacheSession cacheSession) : this()
@@ -87,6 +82,7 @@ namespace GMDCGiphyPlugin.ViewModel
             get => this.loadButtonCommand;
             private set => this.loadButtonCommand = value;
         }
+        
 
         public ICommand CopyGIFLinkCommand
         {
@@ -130,6 +126,7 @@ namespace GMDCGiphyPlugin.ViewModel
             currentSearchQuery = val;
             searchGIFIndexImages.Clear();
             currentState = GIFType.Search;
+            GIFIndexImages = searchGIFIndexImages;
             fetchGIFs();
         }
 
@@ -144,7 +141,6 @@ namespace GMDCGiphyPlugin.ViewModel
                     {
                         trendingGIFIndexImages.Add(ms);
                     }
-                    GIFIndexImages = trendingGIFIndexImages;
                 });
             }
             else if (currentState == GIFType.Search)
@@ -156,14 +152,17 @@ namespace GMDCGiphyPlugin.ViewModel
                     {
                         searchGIFIndexImages.Add(ms);
                     }
-                    GIFIndexImages = searchGIFIndexImages;
                 });
             }
         }
 
         public void onGIFButtonClick(string url)
         {
-            Clipboard.SetText(url);
+            try {
+                Clipboard.Clear();
+                Clipboard.SetText(url); 
+            }
+            catch (Exception e) { }
         }
 
         private IMessageContainer MessageContainer { get; }

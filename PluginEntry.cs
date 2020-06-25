@@ -1,7 +1,10 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Caching;
 using System.Windows;
 using GalaSoft.MvvmLight.Threading;
 using GMDCGiphyPlugin.ViewModel;
@@ -36,7 +39,6 @@ namespace GMDCGiphyPlugin
                 {
                     mainWindow.Dispatcher.InvokeShutdown();
                     vm.Cleanup();
-                    cleanup(cacheSession);
                 };
 
                 System.Windows.Threading.Dispatcher.Run();
@@ -48,6 +50,7 @@ namespace GMDCGiphyPlugin
             Application.Current.MainWindow.Closing += (s, e) =>
             {
                 thread.Abort();
+                cleanup(cacheSession);
             };
 
             return Task.CompletedTask;

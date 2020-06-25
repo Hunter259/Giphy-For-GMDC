@@ -192,3 +192,4 @@ bin/Debug/Newtonsoft.Json.xml
 bin/Debug/RestSharp.xml
 obj/Debug/.NETFramework,Version=v4.7.2.AssemblyAttributes.cs
 obj/Debug/GMDCGiphyPlugin_MarkupCompile.i.lref
+obj/Release/.NETFramework,Version=v4.7.2.AssemblyAttributes.cs
