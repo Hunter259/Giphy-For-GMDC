@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace GMDCGiphyPlugin
+namespace GMDCGiphyPlugin.Converters
 {
     public class MouseOverConverter : IMultiValueConverter
     {
