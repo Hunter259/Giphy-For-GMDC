@@ -41,6 +41,8 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private ICommand searchCompletionCommand;
 
+        private ICommand clearSearchBoxCommand;
+
         private string searchQuery;
 
         public MainWindowViewModel()
@@ -54,6 +56,7 @@ namespace GMDCGiphyPlugin.ViewModel
             CopyGIFLinkCommand = new RelayCommand<string>(this.onGIFButtonClick);
             SearchCommand = new RelayCommand<string>(this.onSearchCall);
             TrendingButtonCommand = new RelayCommand(this.onTrendingButtonClick);
+            ClearSearchBoxCommand = new RelayCommand(this.onClearButtonClick);
 
             GIFIndexImages = trendingGIFIndexImages;
             this.fetchGIFs();
@@ -83,7 +86,6 @@ namespace GMDCGiphyPlugin.ViewModel
             private set => this.loadButtonCommand = value;
         }
         
-
         public ICommand CopyGIFLinkCommand
         {
             get => this.copyGIFLinkCommand;
@@ -94,6 +96,12 @@ namespace GMDCGiphyPlugin.ViewModel
         {
             get => this.searchCompletionCommand;
             private set => this.searchCompletionCommand = value;
+        }
+
+        public ICommand ClearSearchBoxCommand
+        {
+            get => this.clearSearchBoxCommand;
+            private set => this.clearSearchBoxCommand = value;
         }
 
         public string SearchQuery
@@ -108,7 +116,7 @@ namespace GMDCGiphyPlugin.ViewModel
             private set => this.Set(() => this.GIFIndexImages, ref this.gifIndexImages, value);
         }
 
-        public void onTrendingButtonClick()
+        private void onTrendingButtonClick()
         {
             currentState = GIFType.Trending;
             if (trendingGIFIndexImages.Count == 0)
@@ -121,7 +129,7 @@ namespace GMDCGiphyPlugin.ViewModel
             }
         }
 
-        public void onSearchCall(string val)
+        private void onSearchCall(string val)
         {
             currentSearchQuery = val;
             searchGIFIndexImages.Clear();
@@ -130,7 +138,7 @@ namespace GMDCGiphyPlugin.ViewModel
             fetchGIFs();
         }
 
-        public void fetchGIFs()
+        private void fetchGIFs()
         {
             if (currentState == GIFType.Trending)
             {
@@ -156,13 +164,18 @@ namespace GMDCGiphyPlugin.ViewModel
             }
         }
 
-        public void onGIFButtonClick(string url)
+        private void onGIFButtonClick(string url)
         {
             try {
                 Clipboard.Clear();
                 Clipboard.SetText(url); 
             }
             catch (Exception e) { }
+        }
+
+        private void onClearButtonClick()
+        {
+            searchGIFIndexImages.Clear();
         }
 
         private IMessageContainer MessageContainer { get; }

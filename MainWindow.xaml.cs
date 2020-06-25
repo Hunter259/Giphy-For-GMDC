@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace GMDCGiphyPlugin
@@ -15,14 +16,22 @@ namespace GMDCGiphyPlugin
 
         private void Button_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            var animator = XamlAnimatedGif.AnimationBehavior.GetAnimator(((e.OriginalSource as Button).Content as Image));
-            animator.Play();
+            try
+            {
+                var animator = XamlAnimatedGif.AnimationBehavior.GetAnimator(((e.OriginalSource as Button).Content as Image));
+                animator.Play();
+            }
+            catch (NullReferenceException) { }
         }
 
         private void Button_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            var animator = XamlAnimatedGif.AnimationBehavior.GetAnimator(((e.OriginalSource as Button).Content as Image));
-            animator.Pause();
+            try
+            {
+                var animator = XamlAnimatedGif.AnimationBehavior.GetAnimator(((e.OriginalSource as Button).Content as Image));
+                animator.Pause();
+            }
+            catch (NullReferenceException) { }
         }
     }
 }
