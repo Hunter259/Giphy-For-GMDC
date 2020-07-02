@@ -26,32 +26,19 @@ namespace GMDCGiphyPlugin
 
         public Task Activated(IMessageContainer groupOrChat, CacheSession cacheSession, IPluginUIIntegration integration, Action<CacheSession> cleanup)
         {
-            Thread thread = new Thread(() =>
+            MainWindow mainWindow = new MainWindow();
+            MainWindowViewModel vm = new MainWindowViewModel();
+            mainWindow.DataContext = vm;
+
+            mainWindow.Show();
+
+            mainWindow.Closing += (s, e) =>
             {
-                DispatcherHelper.Initialize();
-                MainWindow mainWindow = new MainWindow();
-                MainWindowViewModel vm = new MainWindowViewModel();
-                mainWindow.DataContext = vm;
-
-                mainWindow.Show();
-
-                mainWindow.Closing += (s, e) =>
-                {
-                    mainWindow.Dispatcher.InvokeShutdown();
-                    vm.Cleanup();
-                };
-
-                System.Windows.Threading.Dispatcher.Run();
-            });
-
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-
-            Application.Current.MainWindow.Closing += (s, e) =>
-            {
-                thread.Abort();
                 cleanup(cacheSession);
+                vm.Cleanup();
             };
+
+            System.Windows.Threading.Dispatcher.Run();
 
             return Task.CompletedTask;
         }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
@@ -52,14 +53,14 @@ namespace GMDCGiphyPlugin.ViewModel
             searchGIFIndexImages = new ObservableCollection<GIFData>();
             currentState = GIFType.Trending;
 
-            LoadButtonCommand = new RelayCommand(this.fetchGIFs);
+            LoadButtonCommand = new RelayCommand(async () => await this.FetchGIFs(), true);
             CopyGIFLinkCommand = new RelayCommand<string>(this.onGIFButtonClick);
-            SearchCommand = new RelayCommand<string>(this.onSearchCall);
-            TrendingButtonCommand = new RelayCommand(this.onTrendingButtonClick);
+            SearchCommand = new RelayCommand<string>(async (s) => await this.onSearchCall(s), true);
+            TrendingButtonCommand = new RelayCommand(async () => await this.onTrendingButtonClick(), true);
             ClearSearchBoxCommand = new RelayCommand(this.onClearButtonClick);
 
             GIFIndexImages = trendingGIFIndexImages;
-            this.fetchGIFs();
+            this.FetchGIFs();
         }
 
         public MainWindowViewModel(IMessageContainer messageContainer, CacheSession cacheSession) : this()
@@ -115,13 +116,13 @@ namespace GMDCGiphyPlugin.ViewModel
             get => this.gifIndexImages;
             private set => this.Set(() => this.GIFIndexImages, ref this.gifIndexImages, value);
         }
-
-        private void onTrendingButtonClick()
+        
+        private async Task onTrendingButtonClick()
         {
             currentState = GIFType.Trending;
             if (trendingGIFIndexImages.Count == 0)
             {
-                fetchGIFs();
+                await FetchGIFs();
             }
             else
             {
@@ -129,38 +130,39 @@ namespace GMDCGiphyPlugin.ViewModel
             }
         }
 
-        private void onSearchCall(string val)
+        private async Task onSearchCall(string val)
         {
             currentSearchQuery = val;
             searchGIFIndexImages.Clear();
             currentState = GIFType.Search;
             GIFIndexImages = searchGIFIndexImages;
-            fetchGIFs();
+            fetchController.SearchQuery = val;
+            await FetchGIFs();
         }
 
-        private void fetchGIFs()
+        private async Task FetchGIFs()
         {
             if (currentState == GIFType.Trending)
             {
-                DispatcherHelper.UIDispatcher.InvokeAsync(async () =>
+                for (int i = 0; i < 25; i++)
                 {
-                    var results = await fetchController.FetchNextTrendingPage();
-                    foreach (GIFData ms in results)
+                    GIFData data = await fetchController.FetchNextTrendingGif();
+                    await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
                     {
-                        trendingGIFIndexImages.Add(ms);
-                    }
-                });
+                        GIFIndexImages.Add(data);
+                    });
+                }
             }
             else if (currentState == GIFType.Search)
             {
-                DispatcherHelper.UIDispatcher.InvokeAsync(async () =>
+                for (int i = 0; i < 25; i++)
                 {
-                    var results = await fetchController.FetchNextSearchPage(currentSearchQuery);
-                    foreach (GIFData ms in results)
+                    GIFData data = await fetchController.FetchNextSearchGif();
+                    await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
                     {
-                        searchGIFIndexImages.Add(ms);
-                    }
-                });
+                        GIFIndexImages.Add(data);
+                    });
+                }
             }
         }
 
