@@ -4,14 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="https://github.com/XamlAnimatedGif/XamlAnimatedGif"
-        xmlns:local="clr-namespace:GMDCGiphyPlugin"
+        xmlns:Converters="clr-namespace:GMDCGiphyPlugin.Converters"
         xmlns:wpftk="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
-        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Giphy Plugin For GMDC" Height="800" Width="675"
         ResizeMode="NoResize">
     <Window.Resources>
-        <local:MouseOverConverter x:Key="MouseOverConverter"/>
+        <Converters:MouseOverConverter x:Key="MouseOverConverter"/>
     </Window.Resources>
     <DockPanel>
         <Grid>
@@ -60,12 +60,21 @@
                 </TextBox>
                 <Button Name="SearchGoButton" Grid.Column="3" Grid.Row="1" Command="{Binding SearchCommand}" CommandParameter="{Binding Text, ElementName=SearchTextBox}" Visibility="{Binding ElementName=SearchButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Button.Content>
-                        <TextBlock Text="Search" FontSize="16"/>
+                        <TextBlock Text="Search" FontSize="20"/>
                     </Button.Content>
                 </Button>
-                <Button Name="CloseButton" Grid.Column="4" Grid.Row="1" Command="{Binding LoadButtonCommand}" Visibility="{Binding ElementName=SearchButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Button Name="ClearButton" Grid.Column="4" Grid.Row="1" Command="{Binding ClearSearchBoxCommand}" Visibility="{Binding ElementName=SearchButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Click">
+                            <i:ChangePropertyAction
+                                TargetName="SearchTextBox"
+                                TargetObject="{Binding ElementName=SearchTextBox}"
+                                PropertyName="Text"
+                                Value="{x:Null}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
                     <Button.Content>
-                        <TextBlock Text="Load More" FontSize="32"/>
+                        <TextBlock Text="Clear" FontSize="20"/>
                     </Button.Content>
                 </Button>
             </Grid>
@@ -84,17 +93,14 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <Button Width="200" Height="200" VerticalAlignment="Top" HorizontalAlignment="Left" >
+                                <Button Width="200" Height="200" VerticalAlignment="Top" HorizontalAlignment="Left" MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave">
                                     <i:Interaction.Triggers>
-                                        <i:EventTrigger EventName="MouseEnter">
-                                            <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.GIFMouseOverCommand}">
-                                            </i:InvokeCommandAction>
-                                        </i:EventTrigger>
-                                        <i:EventTrigger EventName="MouseDown">
-                                            <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.CopyGIFLinkCommand}" CommandParameter="{Binding GIFStreamURL}"/>
+                                        <i:EventTrigger EventName="PreviewMouseDown">
+                                            <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListView}}, Path=DataContext.CopyGIFLinkCommand}" CommandParameter="{Binding GIFStreamURL}"/>
                                         </i:EventTrigger>
                                     </i:Interaction.Triggers>
-                                    <Image gif:AnimationBehavior.SourceStream ="{Binding GIFStream}"/>
+                                    <Image gif:AnimationBehavior.SourceStream ="{Binding GIFStream}" 
+                                           gif:AnimationBehavior.AutoStart="False"/>
                                 </Button>
                             </Grid>
                         </DataTemplate>

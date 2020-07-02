@@ -1,7 +1,10 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Caching;
 using System.Windows;
 using GalaSoft.MvvmLight.Threading;
 using GMDCGiphyPlugin.ViewModel;
@@ -23,32 +26,19 @@ namespace GMDCGiphyPlugin
 
         public Task Activated(IMessageContainer groupOrChat, CacheSession cacheSession, IPluginUIIntegration integration, Action<CacheSession> cleanup)
         {
-            Thread thread = new Thread(() =>
+            MainWindow mainWindow = new MainWindow();
+            MainWindowViewModel vm = new MainWindowViewModel();
+            mainWindow.DataContext = vm;
+
+            mainWindow.Show();
+
+            mainWindow.Closing += (s, e) =>
             {
-                DispatcherHelper.Initialize();
-                MainWindow mainWindow = new MainWindow();
-                MainWindowViewModel vm = new MainWindowViewModel();
-                mainWindow.DataContext = vm;
-
-                mainWindow.Show();
-
-                mainWindow.Closing += (s, e) =>
-                {
-                    mainWindow.Dispatcher.InvokeShutdown();
-                    vm.Cleanup();
-                    cleanup(cacheSession);
-                };
-
-                System.Windows.Threading.Dispatcher.Run();
-            });
-
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-
-            Application.Current.MainWindow.Closing += (s, e) =>
-            {
-                thread.Abort();
+                cleanup(cacheSession);
+                vm.Cleanup();
             };
+
+            System.Windows.Threading.Dispatcher.Run();
 
             return Task.CompletedTask;
         }

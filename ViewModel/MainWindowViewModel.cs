@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
@@ -27,7 +28,7 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private ObservableCollection<GIFData> searchGIFIndexImages;
 
-        private GIFFetchController fetchController;
+        private readonly GIFFetchController fetchController;
 
         private GIFType currentState;
 
@@ -41,6 +42,8 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private ICommand searchCompletionCommand;
 
+        private ICommand clearSearchBoxCommand;
+
         private string searchQuery;
 
         public MainWindowViewModel()
@@ -49,19 +52,15 @@ namespace GMDCGiphyPlugin.ViewModel
             trendingGIFIndexImages = new ObservableCollection<GIFData>();
             searchGIFIndexImages = new ObservableCollection<GIFData>();
             currentState = GIFType.Trending;
-            LoadButtonCommand = new RelayCommand(this.fetchGIFs);
+
+            LoadButtonCommand = new RelayCommand(async () => await this.FetchGIFs(), true);
             CopyGIFLinkCommand = new RelayCommand<string>(this.onGIFButtonClick);
-            SearchCommand = new RelayCommand<string>(this.onSearchCall);
-            TrendingButtonCommand = new RelayCommand(this.onTrendingButtonClick);
-            DispatcherHelper.UIDispatcher.InvokeAsync(async () =>
-            {
-                ObservableCollection<GIFData> results = await fetchController.FetchNextTrendingPage();
-                foreach (GIFData ms in results)
-                {
-                    trendingGIFIndexImages.Add(ms);
-                }
-                GIFIndexImages = trendingGIFIndexImages;
-            });
+            SearchCommand = new RelayCommand<string>(async (s) => await this.onSearchCall(s), true);
+            TrendingButtonCommand = new RelayCommand(async () => await this.onTrendingButtonClick(), true);
+            ClearSearchBoxCommand = new RelayCommand(this.onClearButtonClick);
+
+            GIFIndexImages = trendingGIFIndexImages;
+            this.FetchGIFs();
         }
 
         public MainWindowViewModel(IMessageContainer messageContainer, CacheSession cacheSession) : this()
@@ -87,7 +86,7 @@ namespace GMDCGiphyPlugin.ViewModel
             get => this.loadButtonCommand;
             private set => this.loadButtonCommand = value;
         }
-
+        
         public ICommand CopyGIFLinkCommand
         {
             get => this.copyGIFLinkCommand;
@@ -98,6 +97,12 @@ namespace GMDCGiphyPlugin.ViewModel
         {
             get => this.searchCompletionCommand;
             private set => this.searchCompletionCommand = value;
+        }
+
+        public ICommand ClearSearchBoxCommand
+        {
+            get => this.clearSearchBoxCommand;
+            private set => this.clearSearchBoxCommand = value;
         }
 
         public string SearchQuery
@@ -111,13 +116,13 @@ namespace GMDCGiphyPlugin.ViewModel
             get => this.gifIndexImages;
             private set => this.Set(() => this.GIFIndexImages, ref this.gifIndexImages, value);
         }
-
-        public void onTrendingButtonClick()
+        
+        private async Task onTrendingButtonClick()
         {
             currentState = GIFType.Trending;
             if (trendingGIFIndexImages.Count == 0)
             {
-                fetchGIFs();
+                await FetchGIFs();
             }
             else
             {
@@ -125,45 +130,54 @@ namespace GMDCGiphyPlugin.ViewModel
             }
         }
 
-        public void onSearchCall(string val)
+        private async Task onSearchCall(string val)
         {
             currentSearchQuery = val;
             searchGIFIndexImages.Clear();
             currentState = GIFType.Search;
-            fetchGIFs();
+            GIFIndexImages = searchGIFIndexImages;
+            fetchController.SearchQuery = val;
+            await FetchGIFs();
         }
 
-        public void fetchGIFs()
+        private async Task FetchGIFs()
         {
             if (currentState == GIFType.Trending)
             {
-                DispatcherHelper.UIDispatcher.InvokeAsync(async () =>
+                for (int i = 0; i < 25; i++)
                 {
-                    var results = await fetchController.FetchNextTrendingPage();
-                    foreach (GIFData ms in results)
+                    GIFData data = await fetchController.FetchNextTrendingGif();
+                    await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
                     {
-                        trendingGIFIndexImages.Add(ms);
-                    }
-                    GIFIndexImages = trendingGIFIndexImages;
-                });
+                        GIFIndexImages.Add(data);
+                    });
+                }
             }
             else if (currentState == GIFType.Search)
             {
-                DispatcherHelper.UIDispatcher.InvokeAsync(async () =>
+                for (int i = 0; i < 25; i++)
                 {
-                    var results = await fetchController.FetchNextSearchPage(currentSearchQuery);
-                    foreach (GIFData ms in results)
+                    GIFData data = await fetchController.FetchNextSearchGif();
+                    await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
                     {
-                        searchGIFIndexImages.Add(ms);
-                    }
-                    GIFIndexImages = searchGIFIndexImages;
-                });
+                        GIFIndexImages.Add(data);
+                    });
+                }
             }
         }
 
-        public void onGIFButtonClick(string url)
+        private void onGIFButtonClick(string url)
         {
-            Clipboard.SetText(url);
+            try {
+                Clipboard.Clear();
+                Clipboard.SetText(url); 
+            }
+            catch (Exception e) { }
+        }
+
+        private void onClearButtonClick()
+        {
+            searchGIFIndexImages.Clear();
         }
 
         private IMessageContainer MessageContainer { get; }

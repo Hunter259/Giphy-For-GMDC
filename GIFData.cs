@@ -16,6 +16,10 @@ namespace GMDCGiphyPlugin
 
         private string gifName;
 
+        public GIFData()
+        {
+        }
+
         public GIFData(MemoryStream stream, string url, string name)
         {
             GIFStream = stream;
