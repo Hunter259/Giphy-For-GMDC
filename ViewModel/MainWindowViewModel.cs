@@ -153,7 +153,10 @@ namespace GMDCGiphyPlugin.ViewModel
                        GIFData data = fetchController.FetchNextTrendingGif().Result;
                        Application.Current.Dispatcher.Invoke(() =>
                          {
-                             GIFIndexImages.Add(data);
+                             if (data != null)
+                             {
+                                 GIFIndexImages.Add(data);
+                             }
                          });
                     }));
                 }
@@ -167,7 +170,10 @@ namespace GMDCGiphyPlugin.ViewModel
                         GIFData data = fetchController.FetchNextSearchGif().Result;
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            GIFIndexImages.Add(data);
+                            if (data != null)
+                            {
+                                GIFIndexImages.Add(data);
+                            }
                         });
                     }));
                 }

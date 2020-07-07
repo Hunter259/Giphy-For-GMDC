@@ -79,7 +79,15 @@ namespace GMDCGiphyPlugin
                 }
             }
             trendingResultData.TryDequeue(out data);
-            GIFData gifData = await getGIFStreams(data);
+            GIFData gifData;
+            if (data != null)
+            {
+                gifData = await getGIFStreams(data);
+            }
+            else
+            {
+                gifData = null;
+            }
             return gifData;
         }
 
@@ -95,7 +103,15 @@ namespace GMDCGiphyPlugin
                 }
             }
             searchResultData.TryDequeue(out data);
-            GIFData gifData = await getGIFStreams(data);
+            GIFData gifData;
+            if (data != null)
+            {
+                gifData = await getGIFStreams(data);
+            }
+            else
+            {
+                gifData = null;
+            }
             return gifData;
         }
 
