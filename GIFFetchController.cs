@@ -22,10 +22,6 @@ namespace GMDCGiphyPlugin
 
         private readonly int imagePageLimit = 100;
 
-        private static readonly Object trendingLock = new Object();
-
-        private static readonly Object searchLock = new Object();
-
         private ConcurrentQueue<Data> trendingResultData;
 
         private ConcurrentQueue<Data> searchResultData;
@@ -41,13 +37,13 @@ namespace GMDCGiphyPlugin
             searchResultData = new ConcurrentQueue<Data>();
         }
 
-        public void GetTrendingResultMetaData()
+        public async Task GetTrendingResultMetaData()
         {
-            GiphyDotNet.Model.Results.GiphySearchResult trendingResults = giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage }).Result;
+            GiphyDotNet.Model.Results.GiphySearchResult trendingResults = await giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage });
             Data[] temp = trendingResults.Data;
-            for (int i = imagePageLimit * (currentTrendingPage-1); i < temp.Length; i++)
+            foreach (Data result in temp)
             {
-                trendingResultData.Enqueue(temp[i]);
+                trendingResultData.Enqueue(result);
             }
         }
 
@@ -57,60 +53,53 @@ namespace GMDCGiphyPlugin
             set;
         }
 
-        public void GetSearchResultMetaData()
+        public async Task GetSearchResultMetaData()
         {
-            GiphyDotNet.Model.Results.GiphySearchResult searchResults = giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Query = SearchQuery }).Result;
+            GiphyDotNet.Model.Results.GiphySearchResult searchResults = await giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Query = SearchQuery });
             Data[] temp = searchResults.Data;
-            for (int i = imagePageLimit * (currentSearchPage - 1); i < temp.Length; i++)
+            foreach (Data result in temp)
             {
-                searchResultData.Enqueue(temp[i]);
+                searchResultData.Enqueue(result);
             }
         }
 
         public async Task<GIFData> FetchNextTrendingGif()
         {
             Data data = new Data();
-            lock (trendingLock)
+            trendingResultData.TryDequeue(out data);
+            if (trendingResultData.Count < 6)
             {
-                if (trendingResultData.Count < 6)
+                await GetTrendingResultMetaData();
+                if (data == null)
                 {
-                    currentTrendingPage++;
-                    GetTrendingResultMetaData();
+                    trendingResultData.TryDequeue(out data);
                 }
             }
-            trendingResultData.TryDequeue(out data);
             GIFData gifData = await getGIFStreams(data);
+            currentTrendingPage++;
             return gifData;
         }
 
         public async Task<GIFData> FetchNextSearchGif()
         {
             Data data = new Data();
-            lock (searchLock)
+            searchResultData.TryDequeue(out data);
+            if (searchResultData.Count < 6)
             {
-                if (searchResultData.Count < 6)
+                await GetSearchResultMetaData();
+                if (data == null)
                 {
-                    currentSearchPage++;
-                    GetSearchResultMetaData();
+                    searchResultData.TryDequeue(out data);
                 }
             }
-            searchResultData.TryDequeue(out data);
             GIFData gifData = await getGIFStreams(data);
+            currentSearchPage++;
             return gifData;
         }
 
         private async Task<GIFData> getGIFStreams(Data item)
         {
-            string url;
-            if (item.Images.Downsized.Url == null)
-            {
-                url = item.Images.Original.Url;
-            }
-            else
-            {
-                url = item.Images.Downsized.Url;
-            }
-            HttpWebRequest httpWebRequest = (HttpWebRequest)HttpWebRequest.Create(url);
+            HttpWebRequest httpWebRequest = (HttpWebRequest)HttpWebRequest.Create(item.Images.Downsized.Url);
             WebResponse httpWebResponse = await httpWebRequest.GetResponseAsync();
             Stream imageStream = httpWebResponse.GetResponseStream();
             MemoryStream GIFStream = new MemoryStream();

@@ -3,7 +3,6 @@ using GalaSoft.MvvmLight.Threading;
 using GroupMeClientApi.Models;
 using GroupMeClientPlugin;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -143,47 +142,27 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private async Task FetchGIFs()
         {
-            var tasks = new ConcurrentQueue<Task>();
             if (currentState == GIFType.Trending)
             {
                 for (int i = 0; i < 25; i++)
                 {
-                    tasks.Enqueue(new Task(() =>
+                    GIFData data = await fetchController.FetchNextTrendingGif();
+                    await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
                     {
-                       GIFData data = fetchController.FetchNextTrendingGif().Result;
-                       Application.Current.Dispatcher.Invoke(() =>
-                         {
-                             GIFIndexImages.Add(data);
-                         });
-                    }));
+                        GIFIndexImages.Add(data);
+                    });
                 }
             }
             else if (currentState == GIFType.Search)
             {
                 for (int i = 0; i < 25; i++)
                 {
-                    tasks.Enqueue(new Task(() =>
+                    GIFData data = await fetchController.FetchNextSearchGif();
+                    await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
                     {
-                        GIFData data = fetchController.FetchNextSearchGif().Result;
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            GIFIndexImages.Add(data);
-                        });
-                    }));
+                        GIFIndexImages.Add(data);
+                    });
                 }
-            }
-
-            while (tasks.Count > 0)
-            {
-                var taskRunningList = new List<Task>();
-                for (int i = 0; i < 5; i++)
-                {
-                    Task task;
-                    tasks.TryDequeue(out task);
-                    taskRunningList.Add(task);
-                    task.Start();
-                }
-               await Task.WhenAll(taskRunningList.ToArray());
             }
         }
 

@@ -193,10 +193,3 @@ bin/Debug/RestSharp.xml
 obj/Debug/.NETFramework,Version=v4.7.2.AssemblyAttributes.cs
 obj/Debug/GMDCGiphyPlugin_MarkupCompile.i.lref
 obj/Release/.NETFramework,Version=v4.7.2.AssemblyAttributes.cs
-bin/Publish/GMDCGiphyPlugin-0.1.4.zip
-bin/Release/Microsoft.Xaml.Behaviors.xml
-packages/Microsoft.Xaml.Behaviors.Wpf.1.1.19/.signature.p7s
-packages/Microsoft.Xaml.Behaviors.Wpf.1.1.19/Microsoft.Xaml.Behaviors.Wpf.1.1.19.nupkg
-packages/Microsoft.Xaml.Behaviors.Wpf.1.1.19/lib/net45/Microsoft.Xaml.Behaviors.xml
-packages/Microsoft.Xaml.Behaviors.Wpf.1.1.19/lib/netcoreapp3.0/Microsoft.Xaml.Behaviors.xml
-packages/Microsoft.Xaml.Behaviors.Wpf.1.1.19/tools/Install.ps1
