@@ -5,6 +5,7 @@ using GroupMeClientPlugin;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -46,6 +47,8 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private string searchQuery;
 
+        private GIFData previewGIF;
+
         public MainWindowViewModel()
         {
             fetchController = new GIFFetchController();
@@ -54,7 +57,7 @@ namespace GMDCGiphyPlugin.ViewModel
             currentState = GIFType.Trending;
 
             LoadButtonCommand = new RelayCommand(async () => await this.FetchGIFs(), true);
-            CopyGIFLinkCommand = new RelayCommand<string>(this.onGIFButtonClick);
+            CopyGIFLinkCommand = new RelayCommand<GIFData>(this.onGIFButtonClick);
             SearchCommand = new RelayCommand<string>(async (s) => await this.onSearchCall(s), true);
             TrendingButtonCommand = new RelayCommand(async () => await this.onTrendingButtonClick(), true);
             ClearSearchBoxCommand = new RelayCommand(this.onClearButtonClick);
@@ -116,6 +119,12 @@ namespace GMDCGiphyPlugin.ViewModel
             get => this.gifIndexImages;
             private set => this.Set(() => this.GIFIndexImages, ref this.gifIndexImages, value);
         }
+
+        public GIFData PreviewGIF
+        {
+            get => this.previewGIF;
+            set => this.Set(() => this.PreviewGIF, ref this.previewGIF, value);
+        }
         
         private async Task onTrendingButtonClick()
         {
@@ -166,11 +175,12 @@ namespace GMDCGiphyPlugin.ViewModel
             }
         }
 
-        private void onGIFButtonClick(string url)
+        private void onGIFButtonClick(GIFData data)
         {
             try {
                 Clipboard.Clear();
-                Clipboard.SetText(url); 
+                Clipboard.SetText(data.GIFStreamURL);
+                //Clipboard.SetDataObject(data.GIFStream, true);
             }
             catch (Exception e) { }
         }
