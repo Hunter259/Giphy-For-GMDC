@@ -43,12 +43,16 @@ namespace GMDCGiphyPlugin
 
         public void GetTrendingResultMetaData()
         {
-            GiphyDotNet.Model.Results.GiphySearchResult trendingResults = giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage }).Result;
-            Data[] temp = trendingResults.Data;
-            for (int i = imagePageLimit * (currentTrendingPage-1); i < temp.Length; i++)
+            try
             {
-                trendingResultData.Enqueue(temp[i]);
+                GiphyDotNet.Model.Results.GiphySearchResult trendingResults = giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage }).Result;
+                Data[] temp = trendingResults.Data;
+                for (int i = imagePageLimit * (currentTrendingPage - 1); i < temp.Length; i++)
+                {
+                    trendingResultData.Enqueue(temp[i]);
+                }
             }
+            catch (WebException) { }
         }
 
         public string SearchQuery
@@ -59,23 +63,30 @@ namespace GMDCGiphyPlugin
 
         public void GetSearchResultMetaData()
         {
-            GiphyDotNet.Model.Results.GiphySearchResult searchResults = giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Query = SearchQuery }).Result;
-            Data[] temp = searchResults.Data;
-            for (int i = imagePageLimit * (currentSearchPage - 1); i < temp.Length; i++)
+            try
             {
-                searchResultData.Enqueue(temp[i]);
+                GiphyDotNet.Model.Results.GiphySearchResult searchResults = giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Query = SearchQuery }).Result;
+                Data[] temp = searchResults.Data;
+                for (int i = imagePageLimit * (currentSearchPage - 1); i < temp.Length; i++)
+                {
+                    searchResultData.Enqueue(temp[i]);
+                }
             }
+            catch (WebException) { }
         }
 
         public async Task<GIFData> FetchNextTrendingGif()
         {
             Data data = new Data();
-            lock (trendingLock)
+            if (trendingResultData.Count < 6)
             {
-                if (trendingResultData.Count < 6)
+                lock (trendingLock)
                 {
-                    currentTrendingPage++;
-                    GetTrendingResultMetaData();
+                    if (trendingResultData.Count < 6)
+                    {
+                        currentTrendingPage++;
+                        GetTrendingResultMetaData();
+                    }
                 }
             }
             trendingResultData.TryDequeue(out data);
@@ -94,12 +105,15 @@ namespace GMDCGiphyPlugin
         public async Task<GIFData> FetchNextSearchGif()
         {
             Data data = new Data();
-            lock (searchLock)
+            if (searchResultData.Count < 6)
             {
-                if (searchResultData.Count < 6)
+                lock (searchLock)
                 {
-                    currentSearchPage++;
-                    GetSearchResultMetaData();
+                    if (searchResultData.Count < 6)
+                    {
+                        currentSearchPage++;
+                        GetSearchResultMetaData();
+                    }
                 }
             }
             searchResultData.TryDequeue(out data);
