@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="https://github.com/XamlAnimatedGif/XamlAnimatedGif"
         xmlns:Converters="clr-namespace:GMDCGiphyPlugin.Converters"
-        xmlns:wpftk="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
+        xmlns:wpftk="clr-namespace:GMDCGiphyPlugin.Extensions"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Giphy Plugin For GMDC" Height="800" Width="675"
@@ -89,7 +89,7 @@
                 <ListView x:Name="GIFIndexListBox" ItemsSource="{Binding GIFIndexImages}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <wpftk:VirtualizingWrapPanel IsItemsHost="True" Orientation="Vertical" MaxWidth="{Binding Width, ElementName=GIFIndexListBox}" CanHorizontallyScroll="False"/>
+                            <wpftk:FastVirtualizingWrapPanel IsItemsHost="True" Orientation="Vertical" MaxWidth="{Binding Width, ElementName=GIFIndexListBox}" CanHorizontallyScroll="False" VirtualizingPanel.IsVirtualizing="True"/>
                         </ItemsPanelTemplate>
                     </ListView.ItemsPanel>
                     <ListView.ItemTemplate>
