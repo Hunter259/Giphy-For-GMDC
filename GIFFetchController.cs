@@ -52,7 +52,7 @@ namespace GMDCGiphyPlugin
                     trendingResultData.Enqueue(temp[i]);
                 }
             }
-            catch (WebException) { }
+            catch (Exception) { }
         }
 
         public string SearchQuery
@@ -72,7 +72,7 @@ namespace GMDCGiphyPlugin
                     searchResultData.Enqueue(temp[i]);
                 }
             }
-            catch (WebException) { }
+            catch (Exception) { }
         }
 
         public async Task<GIFData> FetchNextTrendingGif()
