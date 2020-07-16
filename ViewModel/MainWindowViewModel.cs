@@ -143,6 +143,7 @@ namespace GMDCGiphyPlugin.ViewModel
         {
             currentSearchQuery = val;
             searchGIFIndexImages.Clear();
+            fetchController.ClearSearchQueue();
             currentState = GIFType.Search;
             GIFIndexImages = searchGIFIndexImages;
             fetchController.SearchQuery = val;

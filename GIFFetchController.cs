@@ -110,5 +110,10 @@ namespace GMDCGiphyPlugin
 
             return fullGIFData;
         }
+
+        public void ClearSearchQueue()
+        {
+            searchResultData = new ConcurrentQueue<Data>();
+        }
     }
 }
