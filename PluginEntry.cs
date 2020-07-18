@@ -18,7 +18,7 @@ namespace GMDCGiphyPlugin
     {
         public string PluginName => this.PluginDisplayName;
 
-        public override string PluginDisplayName => "Gighy Plugin For GMDC";
+        public override string PluginDisplayName => "Giphy Plugin For GMDC";
 
         public override string PluginVersion => Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
@@ -38,7 +38,10 @@ namespace GMDCGiphyPlugin
                 vm.Cleanup();
             };
 
-            System.Windows.Threading.Dispatcher.Run();
+            Application.Current.Exit += (s, e) =>
+            {
+                mainWindow.Close();
+            };
 
             return Task.CompletedTask;
         }

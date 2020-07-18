@@ -5,13 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="https://github.com/XamlAnimatedGif/XamlAnimatedGif"
         xmlns:Converters="clr-namespace:GMDCGiphyPlugin.Converters"
-        xmlns:wpftk="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
+        xmlns:wpftk="clr-namespace:GMDCGiphyPlugin.Extensions"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Giphy Plugin For GMDC" Height="800" Width="675"
         ResizeMode="NoResize">
     <Window.Resources>
         <Converters:MouseOverConverter x:Key="MouseOverConverter"/>
+        <Style x:Key="GridBlur" TargetType="Grid">
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <BlurEffect Radius="10"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <DockPanel>
         <Grid>
@@ -27,7 +34,7 @@
                 <RowDefinition Height="3*"/>
                 <RowDefinition Height="3*"/>
             </Grid.RowDefinitions>
-            <Grid Grid.RowSpan="2" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+            <Grid x:Name="ButtonGrid" Grid.RowSpan="2" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Style="{x:Null}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2.75*"/>
                     <ColumnDefinition Width="2.75*"/>
@@ -78,11 +85,11 @@
                     </Button.Content>
                 </Button>
             </Grid>
-            <Grid x:Name="GIFIndexGrid" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Grid.RowSpan="3">
+            <Grid x:Name="GIFIndexGrid" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Grid.RowSpan="3" Style="{x:Null}">
                 <ListView x:Name="GIFIndexListBox" ItemsSource="{Binding GIFIndexImages}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <wpftk:VirtualizingWrapPanel IsItemsHost="True" Orientation="Vertical" MaxWidth="{Binding Width, ElementName=GIFIndexListBox}" CanHorizontallyScroll="False"/>
+                            <wpftk:FastVirtualizingWrapPanel IsItemsHost="True" Orientation="Vertical" MaxWidth="{Binding Width, ElementName=GIFIndexListBox}" CanHorizontallyScroll="False" VirtualizingPanel.IsVirtualizing="True"/>
                         </ItemsPanelTemplate>
                     </ListView.ItemsPanel>
                     <ListView.ItemTemplate>
@@ -95,8 +102,15 @@
                                 </Grid.RowDefinitions>
                                 <Button Width="200" Height="200" VerticalAlignment="Top" HorizontalAlignment="Left" MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave">
                                     <i:Interaction.Triggers>
-                                        <i:EventTrigger EventName="PreviewMouseDown">
-                                            <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListView}}, Path=DataContext.CopyGIFLinkCommand}" CommandParameter="{Binding GIFStreamURL}"/>
+                                        <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
+                                            <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListView}}, Path=DataContext.CopyGIFLinkCommand}" CommandParameter="{Binding}"/>
+                                        </i:EventTrigger>
+                                        <i:EventTrigger EventName="PreviewMouseRightButtonDown">
+                                            <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFIndexGrid}" PropertyName="Style" Value="{StaticResource GridBlur}"/>
+                                            <i:ChangePropertyAction TargetObject="{Binding ElementName=ButtonGrid}" PropertyName="Style" Value="{StaticResource GridBlur}"/>
+                                            <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFPreviewGrid}" PropertyName="Visibility" Value="Visible"/>
+                                            <i:ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListView}}, Path=DataContext, Mode=OneWay}" 
+                                                                    PropertyName="PreviewGIF" Value="{Binding}"/>
                                         </i:EventTrigger>
                                     </i:Interaction.Triggers>
                                     <Image gif:AnimationBehavior.SourceStream ="{Binding GIFStream}" 
@@ -106,6 +120,48 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+            </Grid>
+            <Grid x:Name="GIFPreviewGrid" Background="#7F000000" Grid.ColumnSpan="3" Grid.RowSpan="5" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Column="5" Background="Transparent">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
+                            <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFIndexGrid}" PropertyName="Style" Value="{x:Null}"/>
+                            <i:ChangePropertyAction TargetObject="{Binding ElementName=ButtonGrid}" PropertyName="Style" Value="{x:Null}"/>
+                            <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFPreviewGrid}" PropertyName="Visibility" Value="Collapsed"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <TextBlock Text="X" FontWeight="Bold" FontSize="72" FontStretch="UltraExpanded">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="White" BlurRadius="10" Direction="0" ShadowDepth="1"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Button>
+                <Button Grid.ColumnSpan="3" Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" Background="Transparent">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
+                            <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid}}, Path=DataContext.CopyGIFLinkCommand}" CommandParameter="{Binding PreviewGIF}"/>
+                            <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFIndexGrid}" PropertyName="Style" Value="{x:Null}"/>
+                            <i:ChangePropertyAction TargetObject="{Binding ElementName=ButtonGrid}" PropertyName="Style" Value="{x:Null}"/>
+                            <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFPreviewGrid}" PropertyName="Visibility" Value="Collapsed"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <Image x:Name="PreviewGIF" gif:AnimationBehavior.SourceStream ="{Binding PreviewGIF.GIFStream}" 
+                       gif:AnimationBehavior.AutoStart="True"/>
+                </Button>
             </Grid>
         </Grid>
     </DockPanel>
