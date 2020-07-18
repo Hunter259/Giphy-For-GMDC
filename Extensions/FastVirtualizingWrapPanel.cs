@@ -12,7 +12,7 @@ namespace GMDCGiphyPlugin.Extensions
         /// <summary>
         /// Gets or sets the mouse wheel delta for pixel based scrolling. The default value is 48 dp in WPF.
         /// </summary>
-        public new double MouseWheelDelta { get; set; } = 112.0;
+        public new double MouseWheelDelta { get; set; } = 148.0;
 
         /// <inheritdoc/>
         public new void MouseWheelUp()
