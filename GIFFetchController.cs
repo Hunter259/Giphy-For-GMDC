@@ -22,6 +22,10 @@ namespace GMDCGiphyPlugin
 
         private readonly int imagePageLimit = 100;
 
+        private static readonly Object trendingLock = new Object();
+
+        private static readonly Object searchLock = new Object();
+
         private ConcurrentQueue<Data> trendingResultData;
 
         private ConcurrentQueue<Data> searchResultData;
@@ -37,13 +41,20 @@ namespace GMDCGiphyPlugin
             searchResultData = new ConcurrentQueue<Data>();
         }
 
-        public async Task GetTrendingResultMetaData()
+        public void GetTrendingResultMetaData()
         {
-            GiphyDotNet.Model.Results.GiphySearchResult trendingResults = await giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage });
-            Data[] temp = trendingResults.Data;
-            foreach (Data result in temp)
+            try
             {
-                trendingResultData.Enqueue(result);
+                GiphyDotNet.Model.Results.GiphySearchResult trendingResults = giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage }).Result;
+                Data[] temp = trendingResults.Data;
+                for (int i = imagePageLimit * (currentTrendingPage - 1); i < temp.Length; i++)
+                {
+                    trendingResultData.Enqueue(temp[i]);
+                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show(e.InnerException.Message, "Metadata");
             }
         }
 
@@ -53,53 +64,89 @@ namespace GMDCGiphyPlugin
             set;
         }
 
-        public async Task GetSearchResultMetaData()
+        public void GetSearchResultMetaData()
         {
-            GiphyDotNet.Model.Results.GiphySearchResult searchResults = await giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Query = SearchQuery });
-            Data[] temp = searchResults.Data;
-            foreach (Data result in temp)
+            try
             {
-                searchResultData.Enqueue(result);
+                GiphyDotNet.Model.Results.GiphySearchResult searchResults = giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Offset = (currentSearchPage - 1 * imagePageLimit), Query = SearchQuery }).Result;
+                Data[] temp = searchResults.Data;
+                foreach (Data t in temp)
+                {
+                    searchResultData.Enqueue(t);
+                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show(e.InnerException.Message, "Metadata");
             }
         }
 
         public async Task<GIFData> FetchNextTrendingGif()
         {
             Data data = new Data();
-            trendingResultData.TryDequeue(out data);
             if (trendingResultData.Count < 6)
             {
-                await GetTrendingResultMetaData();
-                if (data == null)
+                lock (trendingLock)
                 {
-                    trendingResultData.TryDequeue(out data);
+                    if (trendingResultData.Count < 6)
+                    {
+                        GetTrendingResultMetaData();
+                        currentTrendingPage++;
+                    }
                 }
             }
-            GIFData gifData = await getGIFStreams(data);
-            currentTrendingPage++;
+            trendingResultData.TryDequeue(out data);
+            GIFData gifData;
+            if (data != null)
+            {
+                gifData = await getGIFStreams(data);
+            }
+            else
+            {
+                gifData = null;
+            }
             return gifData;
         }
 
         public async Task<GIFData> FetchNextSearchGif()
         {
             Data data = new Data();
-            searchResultData.TryDequeue(out data);
             if (searchResultData.Count < 6)
             {
-                await GetSearchResultMetaData();
-                if (data == null)
+                lock (searchLock)
                 {
-                    searchResultData.TryDequeue(out data);
+                    if (searchResultData.Count < 6)
+                    {
+                        GetSearchResultMetaData();
+                        currentSearchPage++;
+                    }
                 }
             }
-            GIFData gifData = await getGIFStreams(data);
-            currentSearchPage++;
+            searchResultData.TryDequeue(out data);
+            GIFData gifData;
+            if (data != null)
+            {
+                gifData = await getGIFStreams(data);
+            }
+            else
+            {
+                gifData = null;
+            }
             return gifData;
         }
 
         private async Task<GIFData> getGIFStreams(Data item)
         {
-            HttpWebRequest httpWebRequest = (HttpWebRequest)HttpWebRequest.Create(item.Images.Downsized.Url);
+            string url;
+            if (item.Images.Downsized.Url == null)
+            {
+                url = item.Images.Original.Url;
+            }
+            else
+            {
+                url = item.Images.Downsized.Url;
+            }
+            HttpWebRequest httpWebRequest = (HttpWebRequest)HttpWebRequest.Create(url);
             WebResponse httpWebResponse = await httpWebRequest.GetResponseAsync();
             Stream imageStream = httpWebResponse.GetResponseStream();
             MemoryStream GIFStream = new MemoryStream();
