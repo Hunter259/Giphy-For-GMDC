@@ -1,4 +1,5 @@
 ﻿using GiphyDotNet.Model.GiphyImage;
+using GroupMeClientApi.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -42,17 +44,26 @@ namespace GMDCGiphyPlugin
             searchResultData = new ConcurrentQueue<Data>();
         }
 
-        public string SearchQuery
-        {
-            get;
-            set;
-        }
+        public bool noTrendingGifs { get; set; }
+
+        public bool noSearchGifs { get; set; }
+
+        public bool trendingCancel { get; set; }
+
+        public bool searchCancel { get; set; }
+
+        public string SearchQuery { get; set; }
 
         public void GetTrendingResultMetaData()
         {
             try
             {
                 Data[] temp = Task.Run(async () => await giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage })).Result.Data;
+                if (temp.Length == 0)
+                {
+                    noTrendingGifs = true;
+                    MessageBox.Show("No GIFs found", "Trending Metadata");
+                }
                 for (int i = imagePageLimit * (currentTrendingPage - 1); i < temp.Length; i++)
                 {
                     trendingResultData.Enqueue(temp[i]);
@@ -61,6 +72,7 @@ namespace GMDCGiphyPlugin
             catch (Exception e)
             {
                 MessageBox.Show(e.InnerException.Message, "Trending Metadata");
+                trendingCancel = true;
             }
         }
 
@@ -69,6 +81,11 @@ namespace GMDCGiphyPlugin
             try
             {
                 Data[] temp = Task.Run(async () => await giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Offset = (currentSearchPage - 1) * imagePageLimit, Query = SearchQuery })).Result.Data;
+                if (temp.Length == 0)
+                {
+                    noSearchGifs = true;
+                    MessageBox.Show("No GIFs found", "Search Metadata");
+                }
                 foreach (Data result in temp)
                 {
                     searchResultData.Enqueue(result);
@@ -77,6 +94,7 @@ namespace GMDCGiphyPlugin
             catch (Exception e)
             {
                 MessageBox.Show(e.InnerException.Message, "Search Metadata");
+                searchCancel = true;
             }
         }
 
@@ -87,10 +105,21 @@ namespace GMDCGiphyPlugin
             {
                 lock (trendingLock)
                 {
-                    if (trendingResultData.Count < 6)
+                    if (trendingCancel == false)
                     {
-                        GetTrendingResultMetaData();
-                        currentTrendingPage++;
+                        if (trendingResultData.Count < 6 && noTrendingGifs == false)
+                        {
+                            GetTrendingResultMetaData();
+                            currentTrendingPage++;
+                        }
+                        else if (noTrendingGifs == true)
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
             }
@@ -114,10 +143,21 @@ namespace GMDCGiphyPlugin
             {
                 lock (searchLock)
                 {
-                    if (searchResultData.Count < 6)
+                    if (searchCancel == false)
                     {
-                        GetSearchResultMetaData();
-                        currentSearchPage++;
+                        if (searchResultData.Count < 6 && noSearchGifs == false)
+                        {
+                            GetSearchResultMetaData();
+                            currentSearchPage++;
+                        }
+                        else if (noSearchGifs == true)
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
             }
