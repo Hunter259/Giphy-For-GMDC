@@ -202,6 +202,7 @@ namespace GMDCGiphyPlugin
         public void ClearSearchQueue()
         {
             searchResultData = new ConcurrentQueue<Data>();
+            currentSearchPage = 1;
         }
     }
 }

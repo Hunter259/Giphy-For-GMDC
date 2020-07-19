@@ -145,8 +145,7 @@ namespace GMDCGiphyPlugin.ViewModel
         private async Task onSearchCall(string val)
         {
             currentSearchQuery = val;
-            searchGIFIndexImages.Clear();
-            fetchController.ClearSearchQueue();
+            onClearButtonClick();
             currentState = GIFType.Search;
             GIFIndexImages = searchGIFIndexImages;
             fetchController.SearchQuery = val;
@@ -226,6 +225,7 @@ namespace GMDCGiphyPlugin.ViewModel
         private void onClearButtonClick()
         {
             searchGIFIndexImages.Clear();
+            fetchController.ClearSearchQueue();
         }
 
         private IMessageContainer MessageContainer { get; }
