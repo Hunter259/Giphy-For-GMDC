@@ -9,6 +9,7 @@ using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
@@ -41,12 +42,17 @@ namespace GMDCGiphyPlugin
             searchResultData = new ConcurrentQueue<Data>();
         }
 
+        public string SearchQuery
+        {
+            get;
+            set;
+        }
+
         public void GetTrendingResultMetaData()
         {
             try
             {
-                GiphyDotNet.Model.Results.GiphySearchResult trendingResults = giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage }).Result;
-                Data[] temp = trendingResults.Data;
+                Data[] temp = Task.Run(async () => await giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage })).Result.Data;
                 for (int i = imagePageLimit * (currentTrendingPage - 1); i < temp.Length; i++)
                 {
                     trendingResultData.Enqueue(temp[i]);
@@ -54,30 +60,23 @@ namespace GMDCGiphyPlugin
             }
             catch (Exception e)
             {
-                System.Windows.MessageBox.Show(e.InnerException.Message, "Metadata");
+                MessageBox.Show(e.InnerException.Message, "Trending Metadata");
             }
-        }
-
-        public string SearchQuery
-        {
-            get;
-            set;
         }
 
         public void GetSearchResultMetaData()
         {
             try
             {
-                GiphyDotNet.Model.Results.GiphySearchResult searchResults = giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Offset = (currentSearchPage - 1 * imagePageLimit), Query = SearchQuery }).Result;
-                Data[] temp = searchResults.Data;
-                foreach (Data t in temp)
+                Data[] temp = Task.Run(async () => await giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Offset = (currentSearchPage - 1) * imagePageLimit, Query = SearchQuery })).Result.Data;
+                foreach (Data result in temp)
                 {
-                    searchResultData.Enqueue(t);
+                    searchResultData.Enqueue(result);
                 }
             }
             catch (Exception e)
             {
-                System.Windows.MessageBox.Show(e.InnerException.Message, "Metadata");
+                MessageBox.Show(e.InnerException.Message, "Search Metadata");
             }
         }
 
