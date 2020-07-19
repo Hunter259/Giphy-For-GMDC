@@ -63,6 +63,7 @@ namespace GMDCGiphyPlugin
                 {
                     noTrendingGifs = true;
                     MessageBox.Show("No GIFs found", "Trending Metadata");
+                    return;
                 }
                 for (int i = imagePageLimit * (currentTrendingPage - 1); i < temp.Length; i++)
                 {
@@ -80,11 +81,12 @@ namespace GMDCGiphyPlugin
         {
             try
             {
-                Data[] temp = Task.Run(async () => await giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = currentSearchPage * imagePageLimit, Offset = (currentSearchPage - 1) * imagePageLimit, Query = SearchQuery })).Result.Data;
+                Data[] temp = Task.Run(async () => await giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = imagePageLimit, Offset = (currentSearchPage - 1) * imagePageLimit, Query = SearchQuery })).Result.Data;
                 if (temp.Length == 0)
                 {
                     noSearchGifs = true;
                     MessageBox.Show("No GIFs found", "Search Metadata");
+                    return;
                 }
                 foreach (Data result in temp)
                 {
