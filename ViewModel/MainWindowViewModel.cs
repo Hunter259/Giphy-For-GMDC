@@ -162,6 +162,10 @@ namespace GMDCGiphyPlugin.ViewModel
                 {
                     tasks.Enqueue(new Task(() =>
                     {
+                        if (i == 0)
+                        {
+                            fetchController.trendingCancel = false;
+                        }
                         GIFData data = fetchController.FetchNextTrendingGif().Result;
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -179,6 +183,10 @@ namespace GMDCGiphyPlugin.ViewModel
                 {
                     tasks.Enqueue(new Task(() =>
                     {
+                        if (i == 0)
+                        {
+                            fetchController.searchCancel = false;
+                        }
                         GIFData data = fetchController.FetchNextSearchGif().Result;
                         Application.Current.Dispatcher.Invoke(() =>
                         {
