@@ -44,10 +44,6 @@ namespace GMDCGiphyPlugin
             searchResultData = new ConcurrentQueue<Data>();
         }
 
-        public bool noTrendingGifs { get; set; }
-
-        public bool noSearchGifs { get; set; }
-
         public bool trendingCancel { get; set; }
 
         public bool searchCancel { get; set; }
@@ -61,7 +57,7 @@ namespace GMDCGiphyPlugin
                 Data[] temp = Task.Run(async () => await giphyManager.TrendingGifs(new GiphyDotNet.Model.Parameters.TrendingParameter() { Limit = imagePageLimit * currentTrendingPage })).Result.Data;
                 if (temp.Length == 0)
                 {
-                    noTrendingGifs = true;
+                    trendingCancel = true;
                     MessageBox.Show("No GIFs found", "Trending Metadata");
                     return;
                 }
@@ -84,7 +80,7 @@ namespace GMDCGiphyPlugin
                 Data[] temp = Task.Run(async () => await giphyManager.GifSearch(new GiphyDotNet.Model.Parameters.SearchParameter() { Limit = imagePageLimit, Offset = (currentSearchPage - 1) * imagePageLimit, Query = SearchQuery })).Result.Data;
                 if (temp.Length == 0)
                 {
-                    noSearchGifs = true;
+                    searchCancel = true;
                     MessageBox.Show("No GIFs found", "Search Metadata");
                     return;
                 }
@@ -109,14 +105,10 @@ namespace GMDCGiphyPlugin
                 {
                     if (trendingCancel == false)
                     {
-                        if (trendingResultData.Count < 6 && noTrendingGifs == false)
+                        if (trendingResultData.Count < 6)
                         {
                             GetTrendingResultMetaData();
                             currentTrendingPage++;
-                        }
-                        else if (noTrendingGifs == true)
-                        {
-                            return null;
                         }
                     }
                     else
@@ -147,14 +139,10 @@ namespace GMDCGiphyPlugin
                 {
                     if (searchCancel == false)
                     {
-                        if (searchResultData.Count < 6 && noSearchGifs == false)
+                        if (searchResultData.Count < 6)
                         {
                             GetSearchResultMetaData();
                             currentSearchPage++;
-                        }
-                        else if (noSearchGifs == true)
-                        {
-                            return null;
                         }
                     }
                     else
