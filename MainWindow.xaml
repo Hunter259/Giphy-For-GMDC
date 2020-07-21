@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="https://github.com/XamlAnimatedGif/XamlAnimatedGif"
         xmlns:Converters="clr-namespace:GMDCGiphyPlugin.Converters"
-        xmlns:wpftk="clr-namespace:GMDCGiphyPlugin.Extensions"
+        xmlns:GMDCExtensions="clr-namespace:GMDCGiphyPlugin.Extensions"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Giphy Plugin For GMDC" Height="800" Width="675"
@@ -86,13 +86,24 @@
                 </Button>
             </Grid>
             <Grid x:Name="GIFIndexGrid" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Grid.RowSpan="3" Style="{x:Null}">
-                <ListView x:Name="GIFIndexListBox" ItemsSource="{Binding GIFIndexImages}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                    <ListView.ItemsPanel>
+                <GMDCExtensions:ListViewWithPosition 
+                    x:Name="GIFIndexListBox" 
+                    ItemsSource="{Binding GIFIndexImages}" 
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    ScrollViewer.CanContentScroll="True" 
+                    ScrollViewer.PanningMode="VerticalOnly"
+                    VirtualizingPanel.IsVirtualizing="True"
+                    VirtualizingPanel.ScrollUnit="Pixel"
+                    VirtualizingPanel.CacheLength="40,40"
+                    VirtualizingPanel.CacheLengthUnit="Item"
+                    GMDCExtensions:ListViewExtensions.AutoScrollToEnd="False"
+                    GMDCExtensions:ListViewExtensions.ScrollToBottom="{Binding LoadMoreInfiniteCommand}">
+                    <GMDCExtensions:ListViewWithPosition.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <wpftk:FastVirtualizingWrapPanel IsItemsHost="True" Orientation="Vertical" MaxWidth="{Binding Width, ElementName=GIFIndexListBox}" CanHorizontallyScroll="False" VirtualizingPanel.IsVirtualizing="True"/>
+                            <GMDCExtensions:FastVirtualizingWrapPanel IsItemsHost="True" Orientation="Vertical" MaxWidth="{Binding Width, ElementName=GIFIndexListBox}" CanHorizontallyScroll="False" VirtualizingPanel.IsVirtualizing="True"/>
                         </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                    <ListView.ItemTemplate>
+                    </GMDCExtensions:ListViewWithPosition.ItemsPanel>
+                    <GMDCExtensions:ListViewWithPosition.ItemTemplate>
                         <DataTemplate>
                             <Grid>
                                 <Grid.RowDefinitions>
@@ -118,8 +129,8 @@
                                 </Button>
                             </Grid>
                         </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    </GMDCExtensions:ListViewWithPosition.ItemTemplate>
+                </GMDCExtensions:ListViewWithPosition>
             </Grid>
             <Grid x:Name="GIFPreviewGrid" Background="#7F000000" Grid.ColumnSpan="3" Grid.RowSpan="5" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>

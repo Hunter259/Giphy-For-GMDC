@@ -80,6 +80,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\FastVirtualizingWrapPanel.cs" />
+    <Compile Include="Extensions\ListViewExtensions.cs" />
+    <Compile Include="Extensions\ListViewWithPosition.cs" />
     <Compile Include="GIFData.cs" />
     <Compile Include="GIFFetchController.cs" />
     <Compile Include="MouseOverConverter.cs" />
