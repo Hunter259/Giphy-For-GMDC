@@ -171,9 +171,10 @@ namespace GMDCGiphyPlugin.ViewModel
             {
                 for (int i = 0; i < 25; i++)
                 {
+                    int j = i;
                     tasks.Enqueue(new Task(() =>
                     {
-                        if (i == 0)
+                        if (j == 0)
                         {
                             fetchController.trendingCancel = false;
                         }
@@ -196,9 +197,10 @@ namespace GMDCGiphyPlugin.ViewModel
             {
                 for (int i = 0; i < 25; i++)
                 {
+                    int j = i;
                     tasks.Enqueue(new Task(() =>
                     {
-                        if (i == 0)
+                        if (j == 0)
                         {
                             fetchController.searchCancel = false;
                         }
