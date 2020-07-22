@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading;
@@ -17,6 +18,11 @@ using System.Windows.Media.Imaging;
 
 namespace GMDCGiphyPlugin
 {
+    public enum GIFType
+    {
+        Trending,
+        Search
+    }
     public class GIFFetchController
     {
         private readonly GiphyDotNet.Manager.Giphy giphyManager;
@@ -37,6 +43,10 @@ namespace GMDCGiphyPlugin
 
         private int currentSearchPage = 1;
 
+        private bool trendingCancel { get; set; }
+
+        private bool searchCancel { get; set; }
+
         public GIFFetchController()
         {
             giphyManager = new GiphyDotNet.Manager.Giphy(giphyAPIKey);
@@ -44,13 +54,9 @@ namespace GMDCGiphyPlugin
             searchResultData = new ConcurrentQueue<Data>();
         }
 
-        public bool trendingCancel { get; set; }
-
-        public bool searchCancel { get; set; }
-
         public string SearchQuery { get; set; }
 
-        public void GetTrendingResultMetaData()
+        private void GetTrendingResultMetaData()
         {
             try
             {
@@ -73,7 +79,7 @@ namespace GMDCGiphyPlugin
             }
         }
 
-        public void GetSearchResultMetaData()
+        private void GetSearchResultMetaData()
         {
             try
             {
@@ -96,7 +102,33 @@ namespace GMDCGiphyPlugin
             }
         }
 
-        public async Task<GIFData> FetchNextTrendingGif()
+        public async Task<ConcurrentQueue<GIFData>> FetchNextGIF(GIFType gifType, int count = 1)
+        {
+            ConcurrentQueue<GIFData> gifDataOut = new ConcurrentQueue<GIFData>();
+            var data = new GIFData();
+
+            while (count > 0)
+            {
+                if (gifType == GIFType.Trending)
+                {
+                    data = await FetchNextTrendingGif();
+                }
+                else if (gifType == GIFType.Search)
+                {
+                    data = await FetchNextSearchGif();
+                }
+                else
+                {
+                    data = null;
+                }
+                gifDataOut.Enqueue(data);
+                count--;
+            }
+
+            return gifDataOut;
+        }
+
+        private async Task<GIFData> FetchNextTrendingGif()
         {
             Data data = new Data();
             if (trendingResultData.Count < 6)
@@ -130,7 +162,7 @@ namespace GMDCGiphyPlugin
             return gifData;
         }
 
-        public async Task<GIFData> FetchNextSearchGif()
+        private async Task<GIFData> FetchNextSearchGif()
         {
             Data data = new Data();
             if (searchResultData.Count < 6)
