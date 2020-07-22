@@ -1,23 +1,14 @@
 ﻿using GalaSoft.MvvmLight.Command;
-using GalaSoft.MvvmLight.Threading;
 using GroupMeClientApi.Models;
 using GroupMeClientPlugin;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
-using System.Web.UI.WebControls;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 
 namespace GMDCGiphyPlugin.ViewModel
 {
@@ -66,7 +57,7 @@ namespace GMDCGiphyPlugin.ViewModel
             SearchCommand = new RelayCommand<string>(async (s) => await this.OnSearchCall(s), true);
             TrendingButtonCommand = new RelayCommand(async () => await this.OnTrendingButtonClick(), true);
             ClearSearchBoxCommand = new RelayCommand(this.onClearButtonClick);
-            
+
 
             GIFIndexImages = trendingGIFIndexImages;
 
@@ -97,7 +88,7 @@ namespace GMDCGiphyPlugin.ViewModel
             get => this.loadButtonCommand;
             private set => this.loadButtonCommand = value;
         }
-        
+
         public ICommand CopyGIFLinkCommand
         {
             get => this.copyGIFLinkCommand;
@@ -139,7 +130,7 @@ namespace GMDCGiphyPlugin.ViewModel
             get => this.previewGIF;
             set => this.Set(() => this.PreviewGIF, ref this.previewGIF, value);
         }
-        
+
         private async Task OnTrendingButtonClick()
         {
             currentState = GIFType.Trending;
@@ -165,78 +156,30 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private async Task FetchGIFs(ScrollViewer scrollViewer = null)
         {
-            var tasks = new ConcurrentQueue<Task>();
             double originalOffset = scrollViewer?.VerticalOffset ?? 0.0;
-            if (currentState == GIFType.Trending)
-            {
-                for (int i = 0; i < 25; i++)
-                {
-                    int j = i;
-                    tasks.Enqueue(new Task(() =>
-                    {
-                        if (j == 0)
-                        {
-                            fetchController.trendingCancel = false;
-                        }
-                        GIFData data = Task.Run(async () => await fetchController.FetchNextTrendingGif()).Result;
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            if (data != null)
-                            {
-                                GIFIndexImages.Add(data);
-                            }
-                            if (originalOffset != 0)
-                            {
-                                OffsetCalc(scrollViewer, originalOffset);
-                            }
-                        });
-                    }));
-                }
-            }
-            else if (currentState == GIFType.Search)
-            {
-                for (int i = 0; i < 25; i++)
-                {
-                    int j = i;
-                    tasks.Enqueue(new Task(() =>
-                    {
-                        if (j == 0)
-                        {
-                            fetchController.searchCancel = false;
-                        }
-                        GIFData data = Task.Run(async () => await fetchController.FetchNextSearchGif()).Result;
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            if (data != null)
-                            {
-                                GIFIndexImages.Add(data);
-                                if (originalOffset != 0)
-                                {
-                                    OffsetCalc(scrollViewer, originalOffset);
-                                }
-                            }
-                        });
-                    }));
-                }
-            }
 
-            while (tasks.Count > 0)
+            var data = await fetchController.FetchNextGIF(currentState, 15);
+
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                var taskRunningList = new List<Task>();
-                for (int i = 0; i < 5; i++)
+                foreach (var d in data)
                 {
-                    Task task;
-                    tasks.TryDequeue(out task);
-                    taskRunningList.Add(task);
-                    task.Start();
+                    if (d != null)
+                    {
+                        gifIndexImages.Add(d);
+                    }
                 }
-                await Task.WhenAll(taskRunningList.ToArray());
-            }
+                if (originalOffset != 0)
+                {
+                    OffsetCalc(scrollViewer, originalOffset);
+                }
+            });
         }
 
         private void onGIFButtonClick(GIFData data)
         {
-            try {
+            try
+            {
                 Clipboard.Clear();
                 Clipboard.SetText(data.GIFStreamURL);
                 //Clipboard.SetDataObject(data.GIFStream, true);
@@ -252,31 +195,25 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private void OffsetCalc(ScrollViewer scrollViewer, double originalOffset)
         {
-                ScrollChangedEventHandler delayedUpdateHandler = null;
-                int skip = 0;
-                delayedUpdateHandler = (s, e) =>
+            ScrollChangedEventHandler delayedUpdateHandler = null;
+            int skip = 0;
+            delayedUpdateHandler = (s, e) =>
+            {
+                scrollViewer.ScrollToVerticalOffset(originalOffset);
+
+                if ((int)e.VerticalOffset == (int)originalOffset && skip > 1)
                 {
-                    scrollViewer.ScrollToVerticalOffset(originalOffset);
+                    scrollViewer.ScrollChanged -= delayedUpdateHandler;
+                }
 
-                    if ((int)e.VerticalOffset == (int)originalOffset && skip > 1)
-                    {
-                        scrollViewer.ScrollChanged -= delayedUpdateHandler;
-                    }
+                skip++;
+            };
 
-                    skip++;
-                };
-
-                scrollViewer.ScrollChanged += delayedUpdateHandler;
+            scrollViewer.ScrollChanged += delayedUpdateHandler;
         }
 
         private IMessageContainer MessageContainer { get; }
 
         private CacheSession CacheSession { get; }
-    }
-
-    public enum GIFType
-    {
-        Trending,
-        Search
     }
 }
