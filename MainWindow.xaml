@@ -111,7 +111,7 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <Button Width="200" Height="200" VerticalAlignment="Top" HorizontalAlignment="Left" MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave">
+                                <Button Width="200" Height="200" VerticalAlignment="Top" HorizontalAlignment="Left" MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave" Background="Transparent">
                                     <i:Interaction.Triggers>
                                         <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
                                             <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListView}}, Path=DataContext.CopyGIFLinkCommand}" CommandParameter="{Binding}"/>
@@ -124,6 +124,9 @@
                                                                     PropertyName="PreviewGIF" Value="{Binding}"/>
                                         </i:EventTrigger>
                                     </i:Interaction.Triggers>
+                                    <Button.Effect>
+                                        <DropShadowEffect ShadowDepth="5" BlurRadius="10" Direction="10"/>
+                                    </Button.Effect>
                                     <Image gif:AnimationBehavior.SourceStream ="{Binding GIFStream}" 
                                            gif:AnimationBehavior.AutoStart="False"/>
                                 </Button>
@@ -132,13 +135,13 @@
                     </GMDCExtensions:ListViewWithPosition.ItemTemplate>
                 </GMDCExtensions:ListViewWithPosition>
             </Grid>
-            <Grid x:Name="GIFPreviewGrid" Background="#7F000000" Grid.ColumnSpan="3" Grid.RowSpan="5" Visibility="Collapsed">
+            <Grid x:Name="GIFPreviewGrid" Background="#9F000000" Grid.ColumnSpan="3" Grid.RowSpan="5" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="0.5*"/>
                     <ColumnDefinition Width="1.5*"/>
                     <ColumnDefinition Width="1.5*"/>
                     <ColumnDefinition Width="1.5*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="0.5*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -147,7 +150,7 @@
                     <RowDefinition Height="2*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Button Grid.Column="5" Background="Transparent">
+                <Button Grid.Column="3" Grid.ColumnSpan="2" Background="Transparent">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
                             <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFIndexGrid}" PropertyName="Style" Value="{x:Null}"/>
@@ -155,7 +158,15 @@
                             <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFPreviewGrid}" PropertyName="Visibility" Value="Collapsed"/>
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
-                    <TextBlock Text="X" FontWeight="Bold" FontSize="72" FontStretch="UltraExpanded">
+                    <TextBlock Text="X" FontFamily="Segoe Ui" FontWeight="Bold" FontSize="72" FontStretch="UltraExpanded" Width="185" RenderTransformOrigin="0.5,0.5">
+                        <TextBlock.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="-1"/>
+                                <SkewTransform/>
+                                <RotateTransform/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.RenderTransform>
                         <TextBlock.Effect>
                             <DropShadowEffect Color="White" BlurRadius="10" Direction="0" ShadowDepth="1"/>
                         </TextBlock.Effect>
@@ -173,6 +184,68 @@
                     <Image x:Name="PreviewGIF" gif:AnimationBehavior.SourceStream ="{Binding PreviewGIF.GIFStream}" 
                        gif:AnimationBehavior.AutoStart="True"/>
                 </Button>
+                <Grid Grid.Row="5" Grid.ColumnSpan="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Background="#7FD5D5D5">
+                        <TextBlock FontFamily="Segoe Ui" FontSize="28">
+                            <TextBlock.Text>
+                                <Binding Path="PreviewGIF.GIFOriginalStreamSize">
+                                    <Binding.StringFormat>
+                                        Original: {0:#.00} MB
+                                    </Binding.StringFormat>
+                                </Binding>
+                            </TextBlock.Text>
+                            <TextBlock.Effect>
+                                <DropShadowEffect Color="White" BlurRadius="10" Direction="0" ShadowDepth="1"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
+                                <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid}}, Path=DataContext.CopyGIFLinkCommand}" CommandParameter="{Binding PreviewGIF}"/>
+                                <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFIndexGrid}" PropertyName="Style" Value="{x:Null}"/>
+                                <i:ChangePropertyAction TargetObject="{Binding ElementName=ButtonGrid}" PropertyName="Style" Value="{x:Null}"/>
+                                <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFPreviewGrid}" PropertyName="Visibility" Value="Collapsed"/>
+                            </i:EventTrigger>
+                            <i:EventTrigger EventName="MouseEnter">
+                                <i:ChangePropertyAction TargetObject="{Binding this}" PropertyName="Background" Value="#DFD5D5D5"/>
+                            </i:EventTrigger>
+                            <i:EventTrigger EventName="MouseLeave">
+                                <i:ChangePropertyAction TargetObject="{Binding this}" PropertyName="Background" Value="#7FD5D5D5"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Button>
+                    <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Background="#7FD5D5D5">
+                        <TextBlock FontFamily="Segoe Ui" FontSize="28">
+                            <TextBlock.Text>
+                                <Binding Path="PreviewGIF.GIFDownsizedStreamSize">
+                                    <Binding.StringFormat>
+                                        Downsized: {0:#.00} MB
+                                    </Binding.StringFormat>
+                                </Binding>
+                            </TextBlock.Text>
+                            <TextBlock.Effect>
+                                <DropShadowEffect Color="White" BlurRadius="10" Direction="0" ShadowDepth="1"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
+                                <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid}}, Path=DataContext.CopyGIFLinkCommand}" CommandParameter="{Binding PreviewGIF}"/>
+                                <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFIndexGrid}" PropertyName="Style" Value="{x:Null}"/>
+                                <i:ChangePropertyAction TargetObject="{Binding ElementName=ButtonGrid}" PropertyName="Style" Value="{x:Null}"/>
+                                <i:ChangePropertyAction TargetObject="{Binding ElementName=GIFPreviewGrid}" PropertyName="Visibility" Value="Collapsed"/>
+                            </i:EventTrigger>
+                            <i:EventTrigger EventName="MouseEnter">
+                                <i:ChangePropertyAction TargetObject="{Binding this}" PropertyName="Background" Value="#DFD5D5D5"/>
+                            </i:EventTrigger>
+                            <i:EventTrigger EventName="MouseLeave">
+                                <i:ChangePropertyAction TargetObject="{Binding this}" PropertyName="Background" Value="#7FD5D5D5"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Button>
+                </Grid>
             </Grid>
         </Grid>
     </DockPanel>

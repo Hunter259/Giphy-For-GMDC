@@ -158,9 +158,9 @@ namespace GMDCGiphyPlugin.ViewModel
         {
             double originalOffset = scrollViewer?.VerticalOffset ?? 0.0;
 
-            var data = await fetchController.FetchNextGIF(currentState, 15);
+            var data = await fetchController.FetchNextGIF(currentState, 10);
 
-            Application.Current.Dispatcher.Invoke(() =>
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 foreach (var d in data)
                 {
@@ -181,7 +181,7 @@ namespace GMDCGiphyPlugin.ViewModel
             try
             {
                 Clipboard.Clear();
-                Clipboard.SetText(data.GIFStreamURL);
+                Clipboard.SetText(data.GIFOriginalStreamURL);
                 //Clipboard.SetDataObject(data.GIFStream, true);
             }
             catch (Exception e) { }
