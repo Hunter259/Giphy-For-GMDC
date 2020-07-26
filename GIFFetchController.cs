@@ -214,7 +214,7 @@ namespace GMDCGiphyPlugin
             imageStream.CopyTo(GIFStream);
             GIFStream.Position = 0;
 
-            GIFData fullGIFData = new GIFData(GIFStream, item.Images.Original.Url, item.Username);
+            GIFData fullGIFData = new GIFData(GIFStream, item.Images.Original, item.Images.Downsized, item.Username);
 
             return fullGIFData;
         }

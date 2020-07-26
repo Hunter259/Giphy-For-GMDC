@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GiphyDotNet.Model.GiphyImage;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,16 +15,25 @@ namespace GMDCGiphyPlugin
 
         private string gifStreamURL;
 
+        private double gifStreamSize;
+
+        private string gifDownsizedStreamURL;
+
+        private double gifDownsizedStreamSize;
+
         private string gifName;
 
         public GIFData()
         {
         }
 
-        public GIFData(MemoryStream stream, string url, string name)
+        public GIFData(MemoryStream stream, Original orignal, Downsized downsized, string name)
         {
             GIFStream = stream;
-            GIFStreamURL = url;
+            GIFOriginalStreamURL = orignal.Url;
+            GIFOriginalStreamSize = (Convert.ToDouble(orignal.Size) / 1024d) / 1024d;
+            GIFDownsizedStreamURL = downsized.Url;
+            GIFDownsizedStreamSize = (Convert.ToDouble(downsized.Size) / 1024d) / 1024d;
             GIFName = name;
         }
 
@@ -33,10 +43,28 @@ namespace GMDCGiphyPlugin
             private set => this.gifStream = value;
         }
 
-        public string GIFStreamURL
+        public string GIFOriginalStreamURL
         {
             get => this.gifStreamURL;
             private set => this.gifStreamURL = value;
+        }
+
+        public double GIFOriginalStreamSize
+        {
+            get => this.gifStreamSize;
+            private set => this.gifStreamSize = value;
+        }
+
+        public string GIFDownsizedStreamURL
+        {
+            get => this.gifDownsizedStreamURL;
+            private set => this.gifDownsizedStreamURL = value;
+        }
+
+        public double GIFDownsizedStreamSize
+        {
+            get => this.gifDownsizedStreamSize;
+            private set => this.gifDownsizedStreamSize = value;
         }
 
         public string GIFName
