@@ -38,7 +38,7 @@ namespace GMDCGiphyPlugin
                 vm.Cleanup();
             };
 
-            Application.Current.Exit += (s, e) =>
+            Application.Current.MainWindow.Closing += (s, e) =>
             {
                 mainWindow.Close();
             };
