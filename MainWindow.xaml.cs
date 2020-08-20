@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using XamlAnimatedGif;
@@ -8,7 +9,7 @@ namespace GMDCGiphyPlugin
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
         public MainWindow()
         {
@@ -25,6 +26,19 @@ namespace GMDCGiphyPlugin
         {
             var animator = XamlAnimatedGif.AnimationBehavior.GetAnimator(((e.OriginalSource as Button).Content as Image));
             animator?.Pause();
+        }
+
+        private void GIFIndexListBox_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            var listView = sender as ListView;
+            if (listView.Padding.Top > 0 && e.VerticalChange > 0)
+            {
+               // listView.Padding = { 0,0,0,0};
+            }
+            else
+            {
+                //listView.Padding.Top += 5;
+            }
         }
     }
 }
