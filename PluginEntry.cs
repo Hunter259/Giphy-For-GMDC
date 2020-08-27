@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 using System.Web.Caching;
 using System.Windows;
 using GalaSoft.MvvmLight.Threading;
-using GMDCGiphyPlugin.ViewModel;
+using GMDCGiphyPlugin.Views;
+using GMDCGiphyPlugin.ViewModels;
 using GroupMeClientApi.Models;
 using GroupMeClientPlugin;
 using GroupMeClientPlugin.GroupChat;
+using GalaSoft.MvvmLight.Ioc;
 
 namespace GMDCGiphyPlugin
 {
@@ -26,7 +28,15 @@ namespace GMDCGiphyPlugin
 
         public Task Activated(IMessageContainer groupOrChat, CacheSession cacheSession, IPluginUIIntegration integration, Action<CacheSession> cleanup)
         {
-            MainWindow mainWindow = new MainWindow();
+            string DataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MicroCube", "GroupMe Desktop Client");
+            var SettingsManager = new Settings.SettingsManager(Path.Combine(DataRoot, "GiphyPluginSettings.json"));
+
+            if (!SimpleIoc.Default.IsRegistered<Settings.SettingsManager>())
+            {
+                SimpleIoc.Default.Register(() => SettingsManager);
+            }
+
+            MainWindowView mainWindow = new MainWindowView();
             MainWindowViewModel vm = new MainWindowViewModel();
             mainWindow.DataContext = vm;
 
