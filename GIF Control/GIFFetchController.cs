@@ -1,28 +1,14 @@
 ﻿using GiphyDotNet.Model.GiphyImage;
-using GroupMeClientApi.Models;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 
-namespace GMDCGiphyPlugin
+
+namespace GMDCGiphyPlugin.GIF_Control
 {
-    public enum GIFType
-    {
-        Trending,
-        Search
-    }
     public class GIFFetchController
     {
         private readonly GiphyDotNet.Manager.Giphy giphyManager;
@@ -207,6 +193,12 @@ namespace GMDCGiphyPlugin
             {
                 url = item.Images.Downsized.Url;
             }
+
+            return new GIFData(await DownloadGIFStream(url), item.Images.Original, item.Images.Downsized, item.Username);
+        }
+
+        public async Task<MemoryStream> DownloadGIFStream(string url)
+        {
             HttpWebRequest httpWebRequest = (HttpWebRequest)HttpWebRequest.Create(url);
             WebResponse httpWebResponse = await httpWebRequest.GetResponseAsync();
             Stream imageStream = httpWebResponse.GetResponseStream();
@@ -214,9 +206,7 @@ namespace GMDCGiphyPlugin
             imageStream.CopyTo(GIFStream);
             GIFStream.Position = 0;
 
-            GIFData fullGIFData = new GIFData(GIFStream, item.Images.Original, item.Images.Downsized, item.Username);
-
-            return fullGIFData;
+            return GIFStream;
         }
 
         public void ClearSearchQueue()

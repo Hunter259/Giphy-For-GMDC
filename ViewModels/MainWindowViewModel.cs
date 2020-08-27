@@ -1,6 +1,8 @@
 ﻿using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Ioc;
 using GroupMeClientApi.Models;
 using GroupMeClientPlugin;
+using GMDCGiphyPlugin.GIF_Control;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,8 +11,13 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Runtime.CompilerServices;
+using GMDCGiphyPlugin.Views;
+using MahApps.Metro.Controls.Dialogs;
+using GMDCGiphyPlugin.Settings;
+using MahApps.Metro.Controls;
 
-namespace GMDCGiphyPlugin.ViewModel
+namespace GMDCGiphyPlugin.ViewModels
 {
     public class MainWindowViewModel : GalaSoft.MvvmLight.ViewModelBase
     {
@@ -40,9 +47,13 @@ namespace GMDCGiphyPlugin.ViewModel
 
         private ICommand loadMoreInfiniteCommand;
 
+        private ICommand openSettingsCommand;
+
         private string searchQuery;
 
         private GIFData previewGIF;
+
+        private Settings.SettingsManager SettingsManager;
 
         public MainWindowViewModel()
         {
@@ -53,16 +64,18 @@ namespace GMDCGiphyPlugin.ViewModel
 
             LoadButtonCommand = new RelayCommand(async () => await this.FetchGIFs(), true);
             LoadMoreInfiniteCommand = new RelayCommand<ScrollViewer>(async (sv) => await this.FetchGIFs(sv), true);
-            CopyGIFLinkCommand = new RelayCommand<GIFData>(this.onGIFButtonClick);
+            CopyGIFLinkCommand = new RelayCommand<GIFSizeType?>(async (gs) => await this.onGIFButtonClick(gs), true);
             SearchCommand = new RelayCommand<string>(async (s) => await this.OnSearchCall(s), true);
             TrendingButtonCommand = new RelayCommand(async () => await this.OnTrendingButtonClick(), true);
             ClearSearchBoxCommand = new RelayCommand(this.onClearButtonClick);
-
+            OpenSettingsCommand = new RelayCommand(this.OpenSettings);
 
             GIFIndexImages = trendingGIFIndexImages;
 
             var initFetchTask = new Task(async () => await this.FetchGIFs());
             initFetchTask.Start();
+
+            SettingsManager = SimpleIoc.Default.GetInstance<Settings.SettingsManager>();
         }
 
         public MainWindowViewModel(IMessageContainer messageContainer, CacheSession cacheSession) : this()
@@ -111,6 +124,12 @@ namespace GMDCGiphyPlugin.ViewModel
         {
             get => this.loadMoreInfiniteCommand;
             private set => this.loadMoreInfiniteCommand = value;
+        }
+
+        public ICommand OpenSettingsCommand
+        {
+            get => this.openSettingsCommand;
+            private set => this.openSettingsCommand = value;
         }
 
         public string SearchQuery
@@ -176,13 +195,49 @@ namespace GMDCGiphyPlugin.ViewModel
             });
         }
 
-        private void onGIFButtonClick(GIFData data)
+        private async Task onGIFButtonClick(GIFSizeType? size)
         {
+            if (size == null)
+            {
+                size = SettingsManager.Settings.CopySizeBehavior;
+            }
             try
             {
                 Clipboard.Clear();
-                Clipboard.SetText(data.GIFOriginalStreamURL);
-                //Clipboard.SetDataObject(data.GIFStream, true);
+                if (SettingsManager.Settings.CopyBehavior == Settings.CopyBehaviorTypes.Link)
+                {
+                    if (size == GIFSizeType.Downscaled)
+                    {
+                        Clipboard.SetText(PreviewGIF.GIFDownsizedStreamURL);
+                    }
+                    else
+                    {
+                        Clipboard.SetText(PreviewGIF.GIFOriginalStreamURL);
+                    }
+                }
+                else
+                {
+                    if (size == GIFSizeType.Downscaled)
+                    {
+                        PreviewGIF.GIFStream.Position = 0;
+                        var convertedGIF = new System.Windows.DataObject();
+                        convertedGIF.SetData("PNG", PreviewGIF.GIFStream);
+                        convertedGIF.SetData(PreviewGIF.GIFStream);
+                        
+                        Clipboard.SetDataObject(convertedGIF, true);
+                    }
+                    else
+                    {
+                        var gif = await fetchController.DownloadGIFStream(PreviewGIF.GIFOriginalStreamURL);
+                        var convertedGIF = new System.Windows.DataObject();
+                        convertedGIF.SetData("PNG", gif);
+                        convertedGIF.SetData(gif);
+
+                        Clipboard.SetDataObject(convertedGIF, true);
+
+                        gif.Dispose();
+                    }
+                }
             }
             catch (Exception e) { }
         }
@@ -210,6 +265,22 @@ namespace GMDCGiphyPlugin.ViewModel
             };
 
             scrollViewer.ScrollChanged += delayedUpdateHandler;
+        }
+
+        private void OpenSettings()
+        {
+            ViewModels.SettingsViewModel settingsViewModel = new SettingsViewModel();
+            SettingsView settingsView = new SettingsView();
+            settingsView.DataContext = settingsViewModel;
+
+            MetroWindow window = new MetroWindow
+            {
+                Content = settingsView,
+                SizeToContent = SizeToContent.WidthAndHeight,
+                ResizeMode = ResizeMode.NoResize
+            };
+
+            window.ShowDialog();
         }
 
         private IMessageContainer MessageContainer { get; }
