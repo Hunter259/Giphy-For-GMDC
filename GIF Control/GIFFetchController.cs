@@ -93,6 +93,15 @@ namespace GMDCGiphyPlugin.GIF_Control
             ConcurrentQueue<GIFData> gifDataOut = new ConcurrentQueue<GIFData>();
             var data = new GIFData();
 
+            if (gifType == GIFType.Trending)
+            {
+                trendingCancel = false;
+            }
+            else
+            {
+                searchCancel = false;
+            }
+
             while (count > 0)
             {
                 if (gifType == GIFType.Trending)
