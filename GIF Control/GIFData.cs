@@ -1,4 +1,5 @@
-﻿using GiphyDotNet.Model.GiphyImage;
+﻿using GalaSoft.MvvmLight;
+using GiphyDotNet.Model.GiphyImage;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,17 +12,7 @@ namespace GMDCGiphyPlugin.GIF_Control
 {
     public class GIFData
     {
-        private MemoryStream gifStream;
-
-        private string gifStreamURL;
-
-        private double gifStreamSize;
-
-        private string gifDownsizedStreamURL;
-
-        private double gifDownsizedStreamSize;
-
-        private string gifName;
+        private ObservableObject observableObject = new ObservableObject();
 
         public GIFData()
         {
@@ -39,38 +30,38 @@ namespace GMDCGiphyPlugin.GIF_Control
 
         public MemoryStream GIFStream
         {
-            get => this.gifStream;
-            private set => this.gifStream = value;
+            get;
+            private set;
         }
 
         public string GIFOriginalStreamURL
         {
-            get => this.gifStreamURL;
-            private set => this.gifStreamURL = value;
+            get;
+            private set;
         }
 
         public double GIFOriginalStreamSize
         {
-            get => this.gifStreamSize;
-            private set => this.gifStreamSize = value;
+            get;
+            private set;
         }
 
         public string GIFDownsizedStreamURL
         {
-            get => this.gifDownsizedStreamURL;
-            private set => this.gifDownsizedStreamURL = value;
+            get;
+            private set;
         }
 
         public double GIFDownsizedStreamSize
         {
-            get => this.gifDownsizedStreamSize;
-            private set => this.gifDownsizedStreamSize = value;
+            get;
+            private set;
         }
 
         public string GIFName
         {
-            get => this.gifName;
-            private set => this.gifName = value;
+            get;
+            private set;
         }
     }
 }
