@@ -33,22 +33,6 @@ namespace GMDCGiphyPlugin.ViewModels
 
         private GIFType currentState;
 
-        private ICommand trendingButtonCommand;
-
-        private ICommand searchButtonCommand;
-
-        private ICommand loadButtonCommand;
-
-        private ICommand copyGIFLinkCommand;
-
-        private ICommand searchCompletionCommand;
-
-        private ICommand clearSearchBoxCommand;
-
-        private ICommand loadMoreInfiniteCommand;
-
-        private ICommand openSettingsCommand;
-
         private string searchQuery;
 
         private GIFData previewGIF;
@@ -86,50 +70,50 @@ namespace GMDCGiphyPlugin.ViewModels
 
         public ICommand SearchCommand
         {
-            get => this.searchButtonCommand;
-            private set => this.searchButtonCommand = value;
+            get;
+            private set;
         }
 
         public ICommand TrendingButtonCommand
         {
-            get => this.trendingButtonCommand;
-            private set => this.trendingButtonCommand = value;
+            get;
+            private set;
         }
 
         public ICommand LoadButtonCommand
         {
-            get => this.loadButtonCommand;
-            private set => this.loadButtonCommand = value;
+            get;
+            private set;
         }
 
         public ICommand CopyGIFLinkCommand
         {
-            get => this.copyGIFLinkCommand;
-            private set => this.copyGIFLinkCommand = value;
+            get;
+            private set;
         }
 
         public ICommand SearchCompletionCommand
         {
-            get => this.searchCompletionCommand;
-            private set => this.searchCompletionCommand = value;
+            get;
+            private set;
         }
 
         public ICommand ClearSearchBoxCommand
         {
-            get => this.clearSearchBoxCommand;
-            private set => this.clearSearchBoxCommand = value;
+            get;
+            private set;
         }
 
         public ICommand LoadMoreInfiniteCommand
         {
-            get => this.loadMoreInfiniteCommand;
-            private set => this.loadMoreInfiniteCommand = value;
+            get;
+            private set;
         }
 
         public ICommand OpenSettingsCommand
         {
-            get => this.openSettingsCommand;
-            private set => this.openSettingsCommand = value;
+            get;
+            private set;
         }
 
         public string SearchQuery
